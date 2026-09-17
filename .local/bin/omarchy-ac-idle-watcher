@@ -1,0 +1,18 @@
+#!/bin/bash
+# Keeps Omarchy's idle/lock "stay awake" state in sync with AC power presence.
+# While a charger is connected, idle screensaver/lock is suppressed via
+# `omarchy toggle idle stay-awake`; on battery, normal idle behavior resumes.
+
+apply_state() {
+  if omarchy-power-present; then
+    omarchy-toggle-idle stay-awake >/dev/null
+  else
+    omarchy-toggle-idle allow-idle >/dev/null
+  fi
+}
+
+apply_state
+
+upower --monitor | while read -r _; do
+  apply_state
+done
