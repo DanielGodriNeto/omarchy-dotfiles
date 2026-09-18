@@ -1,0 +1,30 @@
+#!/bin/bash
+# Toggle "peek at desktop": switch every monitor's view to an unused,
+# empty workspace so the wallpaper shows through. Windows are never
+# moved, so nothing about their tiled layout changes.
+# Running it again switches each monitor back to its original workspace.
+set -euo pipefail
+
+state_file="${XDG_RUNTIME_DIR:-/tmp}/omarchy-peek-desktop.json"
+
+switch_monitor_workspace() {
+  local monitor="$1" workspace="$2"
+  hyprctl dispatch "hl.dsp.focus({ monitor = \"$monitor\" })" >/dev/null 2>&1 || true
+  hyprctl dispatch "hl.dsp.focus({ workspace = \"$workspace\" })" >/dev/null 2>&1 || true
+}
+
+if [[ -f "$state_file" ]]; then
+  while IFS=$'\t' read -r monitor workspace; do
+    switch_monitor_workspace "$monitor" "$workspace"
+  done < <(jq -r '.[] | "\(.monitor)\t\(.workspace)"' "$state_file")
+  rm -f "$state_file"
+else
+  state=$(hyprctl monitors -j | jq -c '[.[] | {monitor: .name, workspace: (.activeWorkspace.id | tostring)}]')
+  echo "$state" >"$state_file"
+
+  i=0
+  jq -r '.[].monitor' <<<"$state" | while read -r monitor; do
+    i=$((i + 1))
+    switch_monitor_workspace "$monitor" "$((1900 + i))"
+  done
+fi
