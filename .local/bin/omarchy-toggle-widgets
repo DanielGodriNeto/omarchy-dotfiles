@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# omarchy:summary=Toggle the btop + cliamp desktop widgets workspace in and out of view
+set -euo pipefail
+
+TARGET=9
+current=$(hyprctl activeworkspace -j | jq -r '.id')
+
+if [[ "$current" == "$TARGET" ]]; then
+  hyprctl dispatch 'hl.dsp.focus({ workspace = "previous" })'
+else
+  hyprctl dispatch 'hl.dsp.focus({ workspace = "9" })'
+fi
