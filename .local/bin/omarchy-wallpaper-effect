@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# omarchy:summary=Apply (or, when disabled, remove) a subtle vignette on the current wallpaper
+#
+# Re-applies automatically whenever the background changes (see
+# omarchy-wallpaper-effect-watch, started from hypr/autostart.lua).
+# Toggle on/off with Super+Shift+Z (see hypr/bindings.lua).
+set -euo pipefail
+
+STATE_FLAG="$HOME/.local/state/omarchy/wallpaper-effect-enabled"
+CACHE_DIR="$HOME/.cache/omarchy/wallpaper-effects"
+CURRENT_LINK="$HOME/.local/state/omarchy/current/background"
+
+mkdir -p "$CACHE_DIR" "$(dirname -- "$STATE_FLAG")"
+
+source_path=$(readlink -f "$CURRENT_LINK" 2>/dev/null || true)
+[[ -n $source_path && -f $source_path ]] || exit 0
+
+# Never re-process our own cached output (avoids a feedback loop with the watcher).
+case "$source_path" in
+  "$CACHE_DIR"/*) exit 0 ;;
+esac
+
+if [[ ! -f $STATE_FLAG ]]; then
+  omarchy-shell -q background set "$source_path"
+  exit 0
+fi
+
+hash=$(sha1sum "$source_path" | cut -d' ' -f1)
+ext="${source_path##*.}"
+out="$CACHE_DIR/$hash.$ext"
+
+if [[ ! -f $out ]]; then
+  read -r w h <<<"$(magick identify -format "%w %h" "$source_path")"
+  # Radius ~1.45x the half-diagonal: corners darken noticeably, center stays untouched.
+  radius=$(awk -v w="$w" -v h="$h" 'BEGIN { printf "%d", sqrt(w*w + h*h) / 2 * 1.45 }')
+  cx=$((w / 2))
+  cy=$((h / 2))
+  magick -size "${w}x${h}" -define gradient:center="${cx},${cy}" -define gradient:radii="${radius},${radius}" \
+    radial-gradient:white-black \
+    "$source_path" -compose multiply -composite \
+    -modulate 100,108,100 \
+    "$out"
+fi
+
+omarchy-shell -q background set "$out"

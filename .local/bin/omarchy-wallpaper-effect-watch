@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# omarchy:summary=Watch for wallpaper/theme changes and re-apply the vignette effect
+set -euo pipefail
+
+LINK_DIR="$HOME/.local/state/omarchy/current"
+LINK_NAME="background"
+
+mkdir -p "$LINK_DIR"
+
+# Run once at startup for whatever is currently set.
+omarchy-wallpaper-effect
+
+inotifywait -m -e create,moved_to,close_write --format '%f' "$LINK_DIR" 2>/dev/null |
+  while read -r changed; do
+    [[ "$changed" == "$LINK_NAME" ]] || continue
+    sleep 0.5
+    omarchy-wallpaper-effect
+  done

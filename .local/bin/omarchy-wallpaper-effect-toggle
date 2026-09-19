@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# omarchy:summary=Toggle the wallpaper vignette effect on/off
+set -euo pipefail
+
+STATE_FLAG="$HOME/.local/state/omarchy/wallpaper-effect-enabled"
+mkdir -p "$(dirname -- "$STATE_FLAG")"
+
+if [[ -f $STATE_FLAG ]]; then
+  rm -f "$STATE_FLAG"
+  omarchy-notification-send -u low "Wallpaper effect: off"
+else
+  touch "$STATE_FLAG"
+  omarchy-notification-send -u low "Wallpaper effect: on"
+fi
+
+omarchy-wallpaper-effect
