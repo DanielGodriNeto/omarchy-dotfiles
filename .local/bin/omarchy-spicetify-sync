@@ -1,0 +1,73 @@
+#!/usr/bin/env python3
+# Generates/updates a spicetify "Text" theme color scheme from the active
+# Omarchy theme's colors.toml and applies it. Themes use two slightly
+# different key naming schemes (e.g. lighter_bg vs lighter_background), so
+# each color is looked up with a fallback chain across both.
+
+import configparser
+import pathlib
+import re
+import subprocess
+
+CURRENT = pathlib.Path.home() / ".local/state/omarchy/current"
+INI_PATH = pathlib.Path.home() / ".config/spicetify/Themes/text/color.ini"
+
+
+def read_toml_colors(path):
+    values = {}
+    for line in path.read_text().splitlines():
+        match = re.match(r'^(\w+)\s*=\s*"#([0-9a-fA-F]{6})"', line.strip())
+        if match:
+            values.setdefault(match.group(1), match.group(2))
+    return values
+
+
+def pick(values, *keys, default=None):
+    for key in keys:
+        if key in values:
+            return values[key]
+    return default
+
+
+def main():
+    theme_name = (CURRENT / "theme.name").read_text().strip()
+    section = "".join(word.capitalize() for word in re.split(r"[-_]", theme_name))
+
+    values = read_toml_colors(CURRENT / "theme/colors.toml")
+
+    fg = pick(values, "foreground")
+    bg = pick(values, "background")
+    accent = pick(values, "accent", "magenta", default=fg)
+    muted = pick(values, "muted", "dark_foreground", "dark_fg", default=fg)
+
+    colors = {
+        "text": fg,
+        "subtext": muted,
+        "main": bg,
+        "header": pick(values, "lighter_bg", "lighter_background", default=bg),
+        "banner": pick(values, "darker_bg", "darker_background", default=bg),
+        "highlight": pick(values, "selection", default=accent),
+        "accent": accent,
+        "accent-active": accent,
+        "accent-inactive": muted,
+        "border-active": accent,
+        "border-inactive": muted,
+        "notification": pick(values, "green", default=accent),
+        "notification-error": pick(values, "red", default=accent),
+    }
+
+    config = configparser.ConfigParser()
+    config.optionxform = str
+    config.read(INI_PATH)
+    config[section] = {k: v for k, v in colors.items() if v}
+    with INI_PATH.open("w") as f:
+        config.write(f)
+
+    subprocess.run(["spicetify", "config", "current_theme", "text"], check=False)
+    subprocess.run(["spicetify", "config", "color_scheme", section], check=False)
+    subprocess.run(["pkill", "-x", "spotify"], check=False)
+    subprocess.run(["spicetify", "apply"], check=False)
+
+
+if __name__ == "__main__":
+    main()
