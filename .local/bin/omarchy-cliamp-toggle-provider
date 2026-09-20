@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# omarchy:summary=Switch the cliamp desktop widget's music source between Spotify and local radio
+set -euo pipefail
+
+STATE_FILE="$HOME/.local/state/omarchy/cliamp-provider"
+mkdir -p "$(dirname -- "$STATE_FILE")"
+
+current=$(cat "$STATE_FILE" 2>/dev/null || echo "spotify")
+if [[ "$current" == "spotify" ]]; then
+  next="radio"
+else
+  next="spotify"
+fi
+echo "$next" > "$STATE_FILE"
+
+pkill -f "app-id=omarchy-widget-cliamp" 2>/dev/null || true
+sleep 0.3
+
+omarchy-launch-terminal --app-id=omarchy-widget-cliamp --title='Widgets: cliamp' -- omarchy-widget-cliamp-launch &
+disown
+
+label="Radio"
+[[ "$next" == "spotify" ]] && label="Spotify"
+omarchy-notification-send -u low "Widgets: music source switched to ${label}"

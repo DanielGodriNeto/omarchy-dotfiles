@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# omarchy:summary=Launch the cliamp desktop widget using the last-selected music source (Spotify or radio)
+set -euo pipefail
+
+STATE_FILE="$HOME/.local/state/omarchy/cliamp-provider"
+provider=$(cat "$STATE_FILE" 2>/dev/null || echo "spotify")
+
+if [[ "$provider" == "radio" ]]; then
+  exec cliamp
+else
+  exec cliamp --provider spotify
+fi
