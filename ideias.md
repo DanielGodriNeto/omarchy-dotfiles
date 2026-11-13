@@ -32,3 +32,4 @@ Regra: toda ideia nova do usuário vira um arquivo em `ideias/NNN-slug.md` e uma
 | [Tooltips na barra, atalhos no menu e bolinha da dock](ideias/026-tooltips-barra-e-menu.md) | Feito (falta ver em uso) |
 | [Cantos no painel de controle](ideias/027-cantos-no-painel.md) | Feito (testado com 0, 18 e 12) |
 | [Modo da tela externa no painel Display](ideias/028-modo-da-tela.md) | Feito (falta testar com HDMI físico) |
+| [Janelas sólidas, transparentes ou vidro no painel](ideias/029-janelas-vidro.md) | Feito (falta clicar no painel) |

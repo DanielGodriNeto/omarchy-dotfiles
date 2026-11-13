@@ -43,7 +43,7 @@
 - `.config/omarchy/plugins/mancato.bar/widgets/TrayModel.js`: A bar widget that stands in for an app's tray item takes its place: the app's
 - `.config/omarchy/plugins/mancato.bar/widgets/Workspaces.manifest.json`:   "description": "Workspace number indicators",
 - `.config/omarchy/plugins/mancato.bar/widgets/Workspaces.qml`: Every monitor has workspaces 1-10 of its own, which Hyprland numbers in a
-- `.config/omarchy/plugins/mancato.control-center/Panel.qml`: Corner radius presets: what they are called and the radius they set.
+- `.config/omarchy/plugins/mancato.control-center/Panel.qml`: How see-through windows are (Omarchy's own setting): solid, transparent, or frosted glass.
 - `.config/omarchy/plugins/mancato.control-center/manifest.json`:   "description": "Quick toggles and sliders: Wi-Fi, Bluetooth, night light, power profile, volume, brightness",
 - `.config/omarchy/plugins/mancato.corners/Corners.qml`: Two tiny always-there layer surfaces in the top corners. Resting the pointer
 - `.config/omarchy/plugins/mancato.corners/manifest.json`:   "description": "Top-left corner opens the workspaces overview, top-right opens all windows",

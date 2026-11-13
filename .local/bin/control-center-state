@@ -9,6 +9,7 @@ volume=$(grep -oE '[0-9.]+' <<<"$vol" | head -1); muted=false; [[ $vol == *MUTED
 dnd=false; [[ $(omarchy-shell notifications isDnd 2>/dev/null) == on ]] && dnd=true
 bright=$(brightnessctl -m 2>/dev/null | cut -d, -f4 | tr -d %)
 radius=$(corner-radius 2>/dev/null)
+windows=$(omarchy-hyprland-window-transparency 2>/dev/null)
 jq -cn --argjson wifi "$wifi" --argjson bt "$bt" --argjson night "${night:-false}" --arg profile "$profile" \
-  --argjson volume "${volume:-0}" --argjson muted "$muted" --argjson dnd "$dnd" --argjson brightness "${bright:-50}" --argjson radius "${radius:-12}" \
-  '{wifi:$wifi,bt:$bt,night:$night,profile:$profile,volume:$volume,muted:$muted,dnd:$dnd,brightness:$brightness,radius:$radius}'
+  --argjson volume "${volume:-0}" --argjson muted "$muted" --argjson dnd "$dnd" --argjson brightness "${bright:-50}" --argjson radius "${radius:-12}" --arg windows "${windows:-transparent}" \
+  '{wifi:$wifi,bt:$bt,night:$night,profile:$profile,volume:$volume,muted:$muted,dnd:$dnd,brightness:$brightness,radius:$radius,windows:$windows}'

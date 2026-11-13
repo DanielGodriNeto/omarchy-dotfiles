@@ -9,7 +9,21 @@ Panel {
   moduleName: "mancato.control-center"
   ipcTarget: "mancato.control-center"
 
-  property var st: ({ wifi: false, bt: false, night: false, dnd: false, profile: "", volume: 0, muted: false, brightness: 50, radius: 12 })
+  property var st: ({ wifi: false, bt: false, night: false, dnd: false, profile: "", volume: 0, muted: false, brightness: 50, radius: 12, windows: "transparent" })
+  // How see-through windows are (Omarchy's own setting): solid, transparent, or frosted glass.
+  readonly property var windowModes: [{ name: "Sólidas", value: "opaque" }, { name: "Transparentes", value: "transparent" }, { name: "Vidro", value: "glassy" }]
+  function setWindowMode(value) {
+    var next = JSON.parse(JSON.stringify(st))
+    next.windows = value
+    st = next
+    run("omarchy-hyprland-window-transparency " + value)
+  }
+  function stepWindowMode(direction) {
+    var index = 1
+    for (var i = 0; i < windowModes.length; i++) if (windowModes[i].value === st.windows) index = i
+    var target = Math.max(0, Math.min(windowModes.length - 1, index + direction))
+    if (target !== index) setWindowMode(windowModes[target].value)
+  }
   // Corner radius presets: what they are called and the radius they set.
   readonly property var radiusPresets: [{ name: "Retos", value: 0 }, { name: "Suaves", value: 6 }, { name: "Padrão", value: 12 }, { name: "Redondos", value: 18 }]
   function setRadius(value) {
@@ -27,17 +41,18 @@ Panel {
   readonly property var profileOrder: ["power-saver", "balanced", "performance"]
   readonly property var profileNames: ({ "power-saver": "Economia", "balanced": "Equilibrado", "performance": "Desempenho" })
 
-  // Cursor do teclado: 0-4 tiles (2 colunas, o 5o ocupa a linha), 5 volume, 6 brilho, 7 cantos
+  // Cursor do teclado: 0-4 tiles (2 colunas, o 5o ocupa a linha), 5 volume, 6 brilho, 7 cantos, 8 janelas
   property int cursor: -1
   onOpenedChanged: if (!opened) cursor = -1
   function move(dx, dy) {
     if (cursor < 0) { cursor = 0; return }
-    if (dy > 0) cursor = cursor <= 1 ? cursor + 2 : (cursor <= 3 ? 4 : Math.min(7, cursor + 1))
+    if (dy > 0) cursor = cursor <= 1 ? cursor + 2 : (cursor <= 3 ? 4 : Math.min(8, cursor + 1))
     else if (dy < 0) cursor = cursor >= 5 ? cursor - 1 : (cursor === 4 ? 2 : (cursor >= 2 ? cursor - 2 : cursor))
     else if (cursor <= 3) cursor = cursor ^ 1
     else if (cursor === 5) run("wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%" + (dx > 0 ? "+" : "-"))
     else if (cursor === 6) run("brightnessctl -q set 5%" + (dx > 0 ? "+" : "-"))
     else if (cursor === 7) stepRadius(dx > 0 ? 1 : -1)
+    else if (cursor === 8) stepWindowMode(dx > 0 ? 1 : -1)
   }
   function activate() {
     if (cursor === 0) run("nmcli radio wifi " + (st.wifi ? "off" : "on"))
@@ -196,6 +211,65 @@ Panel {
                   font.bold: chip.current
                 }
                 MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.setRadius(chip.modelData.value) }
+              }
+            }
+          }
+        }
+
+        // Janelas: solidas, transparentes ou vidro (ajuste do proprio Omarchy).
+        Item {
+          width: parent.width
+          height: Style.space(52)
+
+          Rectangle {
+            anchors.fill: parent
+            radius: Style.cornerRadius
+            color: "transparent"
+            border.width: root.cursor === 8 ? 2 : 0
+            border.color: Commons.Color.accent
+          }
+
+          Text {
+            textFormat: Text.PlainText
+            text: "Janelas"
+            color: root.bar.foreground
+            opacity: 0.75
+            font.family: root.bar.fontFamily
+            font.pixelSize: Style.font.caption
+            anchors.left: parent.left
+            anchors.leftMargin: Style.space(4)
+            anchors.top: parent.top
+          }
+
+          Row {
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            spacing: Style.space(6)
+
+            Repeater {
+              model: root.windowModes
+
+              delegate: Rectangle {
+                id: windowChip
+                required property var modelData
+                readonly property bool current: root.st.windows === modelData.value
+                width: (parent.width - parent.spacing * 2) / 3
+                height: Style.space(30)
+                radius: Style.cornerRadius
+                color: current ? Commons.Color.accent : Style.selectedFillFor(root.bar.foreground, Commons.Color.accent)
+                Behavior on color { ColorAnimation { duration: Style.duration(180) } }
+
+                Text {
+                  anchors.centerIn: parent
+                  textFormat: Text.PlainText
+                  text: windowChip.modelData.name
+                  color: windowChip.current ? root.bar.background : root.bar.foreground
+                  font.family: root.bar.fontFamily
+                  font.pixelSize: Style.font.caption
+                  font.bold: windowChip.current
+                }
+                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.setWindowMode(windowChip.modelData.value) }
               }
             }
           }
