@@ -170,6 +170,33 @@ function pickWindow(windows, workspaceId) {
   return order[0]
 }
 
+// Dock magnification (macOS style). Slots are slotSize wide, in a row starting
+// at 0; the pointer is `along` the row (negative: none). Each slot grows by a
+// Gaussian of its distance to the pointer, up to maxScale, and every slot is
+// shifted by the room its neighbours gained so grown icons do not overlap; the
+// row stays centered. Returns { scales, shifts, extra } with one scale and
+// shift per slot, and the total width the row gained.
+function magnify(slotCount, slotSize, along, radius, maxScale) {
+  var scales = [], extras = [], shifts = []
+  var total = 0
+  for (var i = 0; i < slotCount; i++) {
+    var scale = 1
+    if (along >= 0 && radius > 0) {
+      var distance = (along - (i + 0.5) * slotSize) / radius
+      scale = 1 + (maxScale - 1) * Math.exp(-distance * distance)
+    }
+    var extra = (scale - 1) * slotSize
+    scales.push(scale)
+    extras.push(extra)
+    total += extra
+  }
+  var before = 0
+  for (var j = 0; j < slotCount; j++) {
+    shifts.push(before + extras[j] / 2 - total / 2)
+    before += extras[j]
+  }
+  return { scales: scales, shifts: shifts, extra: total }
+}
 
 if (typeof module !== "undefined") {
   module.exports = {
@@ -185,6 +212,7 @@ if (typeof module !== "undefined") {
     orderWithKeyAt: orderWithKeyAt,
     dropIndex: dropIndex,
     pinsInOrder: pinsInOrder,
-    pickWindow: pickWindow
+    pickWindow: pickWindow,
+    magnify: magnify
   }
 }

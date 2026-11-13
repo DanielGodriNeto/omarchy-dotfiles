@@ -55,6 +55,10 @@ PanelWindow {
   // straight to the edge of the dock.
   readonly property int iconInset: Style.spacing.sm
   readonly property int slotSize: iconSize + iconInset * 2
+  // Magnification: icons near the pointer grow (macOS style), up to magScale
+  // at the pointer, fading out over about magRadius.
+  readonly property real magScale: 1.55
+  readonly property real magRadius: slotSize * 1.6
   // A pinned app that is not running is drawn faded.
   readonly property real idleOpacity: 0.7
   // Room inward of the dock for its menus: the tallest, the apps button's,
@@ -298,6 +302,16 @@ PanelWindow {
     // frame back instead of being uploaded again.
     opacity: window.shown ? 1 : 0
 
+    // Where the pointer is along the dock while it hovers it (-1 when it does
+    // not, or while a drag or drop owns the slots), and what that does to each
+    // slot: slot 0 is the apps button, app i is slot i + 1.
+    readonly property real pointerAlong: bodyHover.hovered && !window.dragging && !window.hoverStale && window.insertIndex < 0
+      ? (window.vertical ? bodyHover.point.position.y : bodyHover.point.position.x) : -1
+    readonly property bool magnifying: pointerAlong >= 0
+    readonly property var mag: DockModel.magnify(appRepeater.count + 1, window.slotSize, pointerAlong, window.magRadius, window.magScale)
+    // Scale and shift follow the pointer quickly and in step, and ease back slowly.
+    readonly property int magDuration: Style.duration(magnifying ? 70 : 120)
+
     HoverHandler {
       id: bodyHover
       onHoveredChanged: if (!hovered && window.autohide) hideTimer.restart()
@@ -309,10 +323,18 @@ PanelWindow {
       }
     }
 
+    // The backdrop widens with the row while icons are magnified, so the
+    // outer icons stay inside it.
+    property real magEdge: mag.extra / 2
+    Behavior on magEdge { NumberAnimation { duration: body.magDuration; easing.type: Easing.OutCubic } }
+
     BorderSurface {
       id: backdrop
       anchors.fill: parent
-      anchors.margins: -window.pad
+      anchors.leftMargin: -(window.pad + (window.vertical ? 0 : body.magEdge))
+      anchors.rightMargin: -(window.pad + (window.vertical ? 0 : body.magEdge))
+      anchors.topMargin: -(window.pad + (window.vertical ? body.magEdge : 0))
+      anchors.bottomMargin: -(window.pad + (window.vertical ? body.magEdge : 0))
       radius: Math.max(14, Style.cornerRadius + 2)
       color: Commons.Color.popups.background
       borderSpec: Border.surfaceSpec("popups", "border", Commons.Color.popups.border, Style.normalBorderWidth)
@@ -359,15 +381,19 @@ PanelWindow {
     id: appsSlot
 
     property real displayedShift: window.insertIndex >= 0 ? -window.slotSize / 2 : 0
+    property real magShift: body.mag.shifts[0] || 0
+    readonly property real magGrow: body.mag.scales[0] || 1
 
     Behavior on displayedShift {
       enabled: window.animateShifts
       NumberAnimation { duration: Style.duration(150); easing.type: Easing.Bezier; easing.bezierCurve: Style.easeOut }
     }
 
+    Behavior on magShift { NumberAnimation { duration: body.magDuration; easing.type: Easing.OutCubic } }
+
     transform: Translate {
-      x: window.vertical ? 0 : appsSlot.displayedShift
-      y: window.vertical ? appsSlot.displayedShift : 0
+      x: window.vertical ? 0 : appsSlot.displayedShift + appsSlot.magShift
+      y: window.vertical ? appsSlot.displayedShift + appsSlot.magShift : 0
     }
 
     mouse.onClicked: function(event) {
@@ -387,10 +413,10 @@ PanelWindow {
       y: window.iconInset
       width: window.iconSize
       height: window.iconSize
-      scale: appsSlot.hovered ? 1.15 : 1
+      scale: body.magnifying ? appsSlot.magGrow : (appsSlot.hovered ? 1.15 : 1)
       transformOrigin: window.popOrigin
 
-      Behavior on scale { NumberAnimation { duration: Style.duration(120); easing.type: Easing.OutCubic } }
+      Behavior on scale { NumberAnimation { duration: body.magDuration; easing.type: Easing.OutCubic } }
 
       Grid {
         readonly property int square: Math.round(window.iconSize * 0.22)
@@ -424,6 +450,11 @@ PanelWindow {
     property point pressPoint
     property bool dragged: false
     readonly property int windowCount: modelData ? modelData.windows.length : 0
+    // Magnification: this slot's growth and shift (the apps button is slot 0).
+    property real magShift: body.mag.shifts[appSlot.index + 1] || 0
+    readonly property real magGrow: body.mag.scales[appSlot.index + 1] || 1
+    Behavior on magShift { NumberAnimation { duration: body.magDuration; easing.type: Easing.OutCubic } }
+
     // Launch bounce height, and the direction "away from the dock edge".
     property real bounce: 0
     readonly property int bounceSign: window.position === "bottom" || window.position === "right" ? -1 : 1
@@ -523,14 +554,15 @@ PanelWindow {
       mipmap: true
       opacity: appSlot.launching || appSlot.windowCount > 0 ? 1 : window.idleOpacity
       transform: Translate {
-        x: window.vertical ? appSlot.bounceSign * appSlot.bounce : appSlot.displayedShift
-        y: window.vertical ? appSlot.displayedShift : appSlot.bounceSign * appSlot.bounce
+        x: window.vertical ? appSlot.bounceSign * appSlot.bounce : appSlot.displayedShift + appSlot.magShift
+        y: window.vertical ? appSlot.displayedShift + appSlot.magShift : appSlot.bounceSign * appSlot.bounce
       }
-      // A press sinks the icon a little (0.92); hover and drag lift it.
-      scale: appSlot.sinking ? 0.92 : (appSlot.lifted || appSlot.hovered ? 1.15 : 1)
+      // Near the pointer the icon follows the magnification; a drag lifts it, and
+      // a press sinks it to 92% of whatever size it has.
+      scale: (appSlot.sinking ? 0.92 : 1) * (appSlot.lifted ? 1.15 : (body.magnifying ? appSlot.magGrow : (appSlot.hovered ? 1.15 : 1)))
       transformOrigin: window.popOrigin
 
-      Behavior on scale { NumberAnimation { duration: Style.duration(appSlot.sinking ? 160 : 120); easing.type: Easing.OutCubic } }
+      Behavior on scale { NumberAnimation { duration: appSlot.sinking ? Style.duration(160) : body.magDuration; easing.type: Easing.OutCubic } }
     }
 
     // Dot under a running app, in the theme accent.

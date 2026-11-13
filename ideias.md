@@ -26,3 +26,4 @@ Regra: toda ideia nova do usuário vira um arquivo em `ideias/NNN-slug.md` e uma
 | [Squircle, sombra e curvas de janela](ideias/020-squircle-sombra-curvas.md) | Feito (falta o usuário olhar e ajustar) |
 | [Vicinae (launcher estilo Spotlight)](ideias/021-vicinae-launcher.md) | Feito (falta usar e ver numa troca de tema real) |
 | [Micro-interações da dock (press e bounce)](ideias/022-dock-microinteracoes.md) | Feito (falta o usuário ver em uso) |
+| [Zoom da dock por proximidade](ideias/023-dock-zoom.md) | Feito (falta o usuário ver com o mouse real) |
