@@ -499,7 +499,7 @@
    "id": "handoff_peek_desktop_workaround",
    "label": "Peek desktop vs theme reload workaround",
    "file_type": "rationale",
-   "source_file": "HANDOFF.md",
+   "source_file": "docs/HISTORICO.md",
    "source_location": null,
    "source_url": null,
    "captured_at": null,
@@ -1804,11 +1804,12 @@
    "source": "config_omarchy_plugins_mancato_control_center_panel_run",
    "target": "config_omarchy_plugins_mancato_control_center_panel_poll",
    "relation": "calls",
-   "confidence": "INFERRED",
-   "confidence_score": 0.85,
+   "confidence": "EXTRACTED",
+   "confidence_score": 0.9,
    "source_file": ".config/omarchy/plugins/mancato.control-center/Panel.qml",
    "source_location": null,
-   "weight": 1.0
+   "weight": 1.0,
+   "verified_by": "haiku-critic 2026-11-13"
   },
   {
    "source": "config_omarchy_plugins_mancato_control_center_panel_poll",
@@ -1846,16 +1847,6 @@
    "relation": "calls",
    "confidence": "EXTRACTED",
    "confidence_score": 1.0,
-   "source_file": ".config/omarchy/plugins/mancato.dock/AppGrid.qml",
-   "source_location": null,
-   "weight": 1.0
-  },
-  {
-   "source": "config_omarchy_plugins_mancato_dock_appgrid_rebuild",
-   "target": "config_omarchy_plugins_mancato_dock_appgrid_drag_to",
-   "relation": "conceptually_related_to",
-   "confidence": "INFERRED",
-   "confidence_score": 0.55,
    "source_file": ".config/omarchy/plugins/mancato.dock/AppGrid.qml",
    "source_location": null,
    "weight": 1.0
@@ -1954,21 +1945,23 @@
    "source": "config_omarchy_plugins_mancato_dock_dockwindow_app_slot",
    "target": "config_omarchy_plugins_mancato_dock_dock_items",
    "relation": "shares_data_with",
-   "confidence": "INFERRED",
-   "confidence_score": 0.95,
+   "confidence": "EXTRACTED",
+   "confidence_score": 0.9,
    "source_file": ".config/omarchy/plugins/mancato.dock/DockWindow.qml",
    "source_location": null,
-   "weight": 1.0
+   "weight": 1.0,
+   "verified_by": "haiku-critic 2026-11-13"
   },
   {
    "source": "config_omarchy_plugins_mancato_dock_dockwindow_app_slot",
    "target": "config_omarchy_plugins_mancato_dock_dock_bring_forward",
    "relation": "calls",
-   "confidence": "INFERRED",
-   "confidence_score": 0.85,
+   "confidence": "AMBIGUOUS",
+   "confidence_score": 0.5,
    "source_file": ".config/omarchy/plugins/mancato.dock/DockWindow.qml",
    "source_location": null,
-   "weight": 1.0
+   "weight": 1.0,
+   "note": "chamada indireta (AppSlot -> Dock.activate -> bringForward); o texto de DockWindow.qml não cita bringForward"
   },
   {
    "source": "config_omarchy_plugins_mancato_dock_dockwindow_menu",
@@ -2004,11 +1997,12 @@
    "source": "config_omarchy_plugins_mancato_dock_dockwindow",
    "target": "config_omarchy_plugins_mancato_dock_dock_refresh_modes",
    "relation": "shares_data_with",
-   "confidence": "INFERRED",
-   "confidence_score": 0.95,
+   "confidence": "EXTRACTED",
+   "confidence_score": 0.9,
    "source_file": ".config/omarchy/plugins/mancato.dock/DockWindow.qml",
    "source_location": null,
-   "weight": 1.0
+   "weight": 1.0,
+   "verified_by": "haiku-critic 2026-11-13"
   },
   {
    "source": "config_omarchy_plugins_mancato_overview_overview_switch_timer",
@@ -2037,26 +2031,6 @@
    "confidence": "EXTRACTED",
    "confidence_score": 1.0,
    "source_file": ".config/omarchy/plugins/mancato.overview/Overview.qml",
-   "source_location": null,
-   "weight": 1.0
-  },
-  {
-   "source": "config_omarchy_bar_modules_apps_pill_rebuild",
-   "target": "config_omarchy_plugins_mancato_dock_dock_items",
-   "relation": "semantically_similar_to",
-   "confidence": "INFERRED",
-   "confidence_score": 0.85,
-   "source_file": ".config/omarchy/bar/modules/apps-pill.qml",
-   "source_location": null,
-   "weight": 1.0
-  },
-  {
-   "source": "config_omarchy_plugins_mancato_control_center_panel_poll",
-   "target": "config_omarchy_bar_modules_system_pill_parse_stat",
-   "relation": "semantically_similar_to",
-   "confidence": "INFERRED",
-   "confidence_score": 0.75,
-   "source_file": ".config/omarchy/plugins/mancato.control-center/Panel.qml",
    "source_location": null,
    "weight": 1.0
   },
@@ -2161,31 +2135,11 @@
    "weight": 1.0
   },
   {
-   "source": "handoff_overview",
-   "target": "config_omarchy_plugins_mancato_overview_overview_activate",
-   "relation": "references",
-   "confidence": "AMBIGUOUS",
-   "confidence_score": 0.2,
-   "source_file": "HANDOFF.md",
-   "source_location": null,
-   "weight": 1.0
-  },
-  {
    "source": "handoff_control_center",
    "target": "config_omarchy_plugins_mancato_control_center_panel",
    "relation": "references",
    "confidence": "EXTRACTED",
    "confidence_score": 1.0,
-   "source_file": "HANDOFF.md",
-   "source_location": null,
-   "weight": 1.0
-  },
-  {
-   "source": "handoff_peek_desktop_workaround",
-   "target": "handoff_scrolling_layout_crash",
-   "relation": "conceptually_related_to",
-   "confidence": "INFERRED",
-   "confidence_score": 0.65,
    "source_file": "HANDOFF.md",
    "source_location": null,
    "weight": 1.0
@@ -2409,41 +2363,45 @@
    "source": "_config_hypr_bindings_super_space_menu_example",
    "target": "omarchy_cmd_omarchy_menu",
    "relation": "calls",
-   "confidence": "AMBIGUOUS",
-   "confidence_score": 0.2,
+   "confidence": "EXTRACTED",
+   "confidence_score": 0.9,
    "source_file": ".config/hypr/bindings.lua",
    "source_location": null,
-   "weight": 1.0
+   "weight": 1.0,
+   "verified_by": "haiku-critic 2026-11-13"
   },
   {
    "source": "_config_hypr_bindings_super_period_emojis_example",
    "target": "omarchy_cmd_omarchy_shell",
    "relation": "calls",
-   "confidence": "AMBIGUOUS",
-   "confidence_score": 0.2,
+   "confidence": "EXTRACTED",
+   "confidence_score": 0.9,
    "source_file": ".config/hypr/bindings.lua",
    "source_location": null,
-   "weight": 1.0
+   "weight": 1.0,
+   "verified_by": "haiku-critic 2026-11-13"
   },
   {
    "source": "_config_hypr_bindings_super_shift_s_screenshot_example",
    "target": "omarchy_cmd_omarchy_capture_screenshot",
    "relation": "calls",
-   "confidence": "AMBIGUOUS",
-   "confidence_score": 0.2,
+   "confidence": "EXTRACTED",
+   "confidence_score": 0.9,
    "source_file": ".config/hypr/bindings.lua",
    "source_location": null,
-   "weight": 1.0
+   "weight": 1.0,
+   "verified_by": "haiku-critic 2026-11-13"
   },
   {
    "source": "_config_hypr_bindings_super_h_voxtype_example",
    "target": "omarchy_cmd_voxtype",
    "relation": "calls",
-   "confidence": "AMBIGUOUS",
-   "confidence_score": 0.2,
+   "confidence": "EXTRACTED",
+   "confidence_score": 0.9,
    "source_file": ".config/hypr/bindings.lua",
    "source_location": null,
-   "weight": 1.0
+   "weight": 1.0,
+   "verified_by": "haiku-critic 2026-11-13"
   },
   {
    "source": "_config_hypr_bindings_widgets_workspace9_rationale",
@@ -2459,11 +2417,12 @@
    "source": "_config_hypr_bindings_widgets_workspace9_rationale",
    "target": "_config_hypr_autostart_btop_widget",
    "relation": "rationale_for",
-   "confidence": "INFERRED",
-   "confidence_score": 0.85,
+   "confidence": "EXTRACTED",
+   "confidence_score": 0.9,
    "source_file": ".config/hypr/bindings.lua",
    "source_location": null,
-   "weight": 1.0
+   "weight": 1.0,
+   "verified_by": "haiku-critic 2026-11-13"
   },
   {
    "source": "_config_hypr_bindings_dictation_keys_rationale",
@@ -2479,31 +2438,34 @@
    "source": "_config_hypr_bindings_super_shift_v_toggle_widgets",
    "target": "_config_hypr_autostart_cliamp_widget",
    "relation": "conceptually_related_to",
-   "confidence": "INFERRED",
-   "confidence_score": 0.85,
+   "confidence": "EXTRACTED",
+   "confidence_score": 0.9,
    "source_file": ".config/hypr/bindings.lua",
    "source_location": null,
-   "weight": 1.0
+   "weight": 1.0,
+   "verified_by": "haiku-critic 2026-11-13"
   },
   {
    "source": "_config_hypr_bindings_super_shift_z_wallpaper_effect",
    "target": "_config_hypr_autostart_wallpaper_effect_watch",
    "relation": "conceptually_related_to",
-   "confidence": "INFERRED",
-   "confidence_score": 0.85,
+   "confidence": "EXTRACTED",
+   "confidence_score": 0.9,
    "source_file": ".config/hypr/bindings.lua",
    "source_location": null,
-   "weight": 1.0
+   "weight": 1.0,
+   "verified_by": "haiku-critic 2026-11-13"
   },
   {
    "source": "omarchy_cmd_omarchy_cliamp_toggle_provider",
    "target": "_config_hypr_autostart_cliamp_provider_state",
    "relation": "shares_data_with",
-   "confidence": "INFERRED",
-   "confidence_score": 0.85,
+   "confidence": "EXTRACTED",
+   "confidence_score": 0.9,
    "source_file": ".config/hypr/bindings.lua",
    "source_location": null,
-   "weight": 1.0
+   "weight": 1.0,
+   "verified_by": "haiku-critic 2026-11-13"
   },
   {
    "source": "_config_hypr_looknfeel_scrolling_crash_rationale",
@@ -2589,31 +2551,23 @@
    "source": "_config_hypr_input_gesture_4finger_scroll_move",
    "target": "_config_hypr_looknfeel_scrolling_layout",
    "relation": "conceptually_related_to",
-   "confidence": "INFERRED",
-   "confidence_score": 0.85,
+   "confidence": "EXTRACTED",
+   "confidence_score": 0.9,
    "source_file": ".config/hypr/input.lua",
    "source_location": null,
-   "weight": 1.0
+   "weight": 1.0,
+   "verified_by": "haiku-critic 2026-11-13"
   },
   {
    "source": "_config_hypr_input_gesture_focus_example",
    "target": "_config_hypr_looknfeel_scrolling_layout",
    "relation": "conceptually_related_to",
-   "confidence": "INFERRED",
-   "confidence_score": 0.75,
+   "confidence": "EXTRACTED",
+   "confidence_score": 0.9,
    "source_file": ".config/hypr/input.lua",
    "source_location": null,
-   "weight": 1.0
-  },
-  {
-   "source": "_config_hypr_input_touchpad_options_example",
-   "target": "_config_hypr_input_scroll_touchpad_per_app",
-   "relation": "conceptually_related_to",
-   "confidence": "INFERRED",
-   "confidence_score": 0.65,
-   "source_file": ".config/hypr/input.lua",
-   "source_location": null,
-   "weight": 1.0
+   "weight": 1.0,
+   "verified_by": "haiku-critic 2026-11-13"
   },
   {
    "source": "_config_hypr_autostart_btop_widget",
@@ -2819,11 +2773,12 @@
    "source": "_config_omarchy_extensions_omarchy_menu_pintura_root",
    "target": "_config_systemd_user_painting_theme_execstart",
    "relation": "conceptually_related_to",
-   "confidence": "INFERRED",
-   "confidence_score": 0.75,
+   "confidence": "EXTRACTED",
+   "confidence_score": 0.9,
    "source_file": ".config/omarchy/extensions/omarchy-menu.jsonc",
    "source_location": null,
-   "weight": 1.0
+   "weight": 1.0,
+   "verified_by": "haiku-critic 2026-11-13"
   },
   {
    "source": "_config_omarchy_extensions_omarchy_menu_pintura_next",
