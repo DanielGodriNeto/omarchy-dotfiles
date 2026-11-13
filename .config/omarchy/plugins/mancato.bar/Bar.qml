@@ -10,6 +10,7 @@ import qs.Commons
 import qs.Commons as Commons
 import qs.Ui
 import "BarModel.js" as BarModel
+import "BarTooltips.js" as BarTooltips
 
 Item {
   id: root
@@ -2989,6 +2990,17 @@ Item {
     }
 
     HoverHandler { id: moduleHover }
+
+    // A short explanation of what the widget does, for the ones that show no
+    // tooltip of their own (BarTooltips.js). The bar asks the target whether
+    // the pointer is still on it.
+    readonly property string tipText: BarTooltips.text(slot.entry ? slot.entry.id : "")
+    readonly property bool tooltipHovered: moduleHover.hovered && !slot.dragSource
+    onHoveredChanged: {
+      if (slot.hovered && slot.tipText !== "" && !slot.panelOpen) root.showTooltip(slot, slot.tipText)
+      else root.hideTooltip(slot)
+    }
+    onPanelOpenChanged: if (slot.panelOpen) root.hideTooltip(slot)
 
     // The widget at its own size. Lifted out by a drag, it folds away with
     // its room.

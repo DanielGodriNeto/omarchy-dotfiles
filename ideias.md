@@ -29,3 +29,4 @@ Regra: toda ideia nova do usuário vira um arquivo em `ideias/NNN-slug.md` e uma
 | [Zoom da dock por proximidade](ideias/023-dock-zoom.md) | Feito (falta o usuário ver com o mouse real) |
 | [Notificações: arrastar para dispensar](ideias/024-notificacoes-swipe.md) | Feito (falta testar o gesto com mouse real) |
 | [Preview de janela no hover da dock](ideias/025-dock-preview-janela.md) | Feito (falta testar o hover real) |
+| [Tooltips na barra, atalhos no menu e bolinha da dock](ideias/026-tooltips-barra-e-menu.md) | Feito (falta ver em uso) |

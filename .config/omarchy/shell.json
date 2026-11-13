@@ -6,7 +6,7 @@
           "format": "dddd HH:mm",
           "formatAlt": "d MMMM 'W'ww yyyy",
           "id": "omarchy.clock",
-          "verticalFormat": "HH\n\u2014\nmm"
+          "verticalFormat": "HH\n—\nmm"
         }
       ],
       "centerBegin": [
@@ -55,7 +55,7 @@
       ],
       "left": [
         {
-          "id": "omarchy.menu"
+          "id": "mancato.menu"
         },
         {
           "id": "omarchy.workspaces"
@@ -125,11 +125,13 @@
   },
   "cloneSourceRestores": [
     "mancato.dock",
-    "mancato.notifications"
+    "mancato.notifications",
+    "mancato.menu"
   ],
   "disabledPlugins": [
     "omarchy.dock",
-    "omarchy.notifications"
+    "omarchy.notifications",
+    "omarchy.menu"
   ],
   "dock": {
     "autohide": true,

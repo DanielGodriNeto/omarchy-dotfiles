@@ -627,6 +627,11 @@ PanelWindow {
         : Math.round((appSlot.width - width) / 2)
       y: window.position === "top" ? 1 : window.position === "bottom" ? appSlot.height - height - 1
         : Math.round((appSlot.height - height) / 2)
+      // The dot travels with its icon: pushed aside by the magnification and by drags.
+      transform: Translate {
+        x: window.vertical ? 0 : appSlot.displayedShift + appSlot.magShift
+        y: window.vertical ? appSlot.displayedShift + appSlot.magShift : 0
+      }
     }
 
     // With animations off it holds still rather than spinning through
