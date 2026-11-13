@@ -42,7 +42,7 @@
 - `.config/omarchy/plugins/mancato.bar/widgets/TrayModel.js`: A bar widget that stands in for an app's tray item takes its place: the app's
 - `.config/omarchy/plugins/mancato.bar/widgets/Workspaces.manifest.json`:   "description": "Workspace number indicators",
 - `.config/omarchy/plugins/mancato.bar/widgets/Workspaces.qml`: Every monitor has workspaces 1-10 of its own, which Hyprland numbers in a
-- `.config/omarchy/plugins/mancato.control-center/Panel.qml`: Cursor do teclado: 0-4 tiles (2 colunas, o 5o ocupa a linha), 5 volume, 6 brilho
+- `.config/omarchy/plugins/mancato.control-center/Panel.qml`: Corner radius presets: what they are called and the radius they set.
 - `.config/omarchy/plugins/mancato.control-center/manifest.json`:   "description": "Quick toggles and sliders: Wi-Fi, Bluetooth, night light, power profile, volume, brightness",
 - `.config/omarchy/plugins/mancato.corners/Corners.qml`: Two tiny always-there layer surfaces in the top corners. Resting the pointer
 - `.config/omarchy/plugins/mancato.corners/manifest.json`:   "description": "Top-left corner opens the workspaces overview, top-right opens all windows",
@@ -86,6 +86,7 @@
 - `.config/vicinae/settings.json`: Vicinae launcher settings. The theme "omarchy" is generated from the active Omarchy
 - `.gitignore`: /graphify-out/
 - `.local/bin/control-center-state`: Estado dos controles rapidos em JSON (usado pelo plugin mancato.control-center).
+- `.local/bin/corner-radius`: Raio dos cantos das janelas e do shell (barra, dock, paineis seguem o do Hyprland).
 - `.local/bin/fastfetch-art`: """Pinta o logo do fastfetch com uma pintura de natureza no tom do tema Omarchy (sorteada dentro de uma faixa de cores)."""
 - `.local/bin/fastfetch-fit`: """fastfetch adaptativo: ajusta imagem e secoes ao tamanho do terminal."""
 - `.local/bin/focus-mode`: Modo foco: esconde a barra e esmaece as janelas inativas. Rode de novo para sair.

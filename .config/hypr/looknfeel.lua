@@ -21,10 +21,21 @@ hl.config({
 --   },
 -- })
 
+-- Corner radius: ~/.config/omarchy/corner-radius (written by .local/bin/corner-radius,
+-- which the control center uses); 12 when the file is missing or invalid.
+local function corner_radius()
+  local file = io.open(os.getenv("HOME") .. "/.config/omarchy/corner-radius", "r")
+  if not file then return 12 end
+  local value = tonumber(file:read("*l"))
+  file:close()
+  if value and value >= 0 and value <= 24 then return math.floor(value) end
+  return 12
+end
+
 -- https://wiki.hypr.land/Configuring/Basics/Variables/#decoration
 hl.config({
   decoration = {
-    rounding = 12,
+    rounding = corner_radius(),
     -- 2.0 = circular corner; ~2.5 = macOS-like continuous curve (squircle).
     rounding_power = 2.5,
 

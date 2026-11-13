@@ -1,0 +1,30 @@
+#!/bin/bash
+# Raio dos cantos das janelas e do shell (barra, dock, paineis seguem o do Hyprland).
+#   corner-radius          mostra o valor atual
+#   corner-radius N        grava N (0 a 24) e recarrega o Hyprland
+# O valor fica em ~/.config/omarchy/corner-radius, lido por hypr/looknfeel.lua.
+# A recarga emite "configreloaded", que o shell escuta para redesenhar os cantos.
+set -eu
+
+STATE="${XDG_CONFIG_HOME:-$HOME/.config}/omarchy/corner-radius"
+DEFAULT=12
+
+current() {
+  local value
+  value=$(head -n1 "$STATE" 2>/dev/null || true)
+  [[ $value =~ ^[0-9]+$ ]] && echo "$value" || echo "$DEFAULT"
+}
+
+if [[ $# -eq 0 ]]; then
+  current
+  exit 0
+fi
+
+if ! [[ $1 =~ ^[0-9]+$ ]] || (( $1 > 24 )); then
+  echo "uso: corner-radius [0-24]" >&2
+  exit 1
+fi
+
+mkdir -p "$(dirname "$STATE")"
+printf '%s\n' "$1" >"$STATE"
+hyprctl reload config-only >/dev/null
