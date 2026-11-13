@@ -13,3 +13,4 @@ Regra: toda ideia nova do usuário vira um arquivo em `ideias/NNN-slug.md` e uma
 | [Tela de login/Plymouth com a pintura atual](ideias/007-login-plymouth.md) | Pendente |
 | [Voltar ao layout em rolagem](ideias/008-voltar-ao-scrolling.md) | Bloqueado (esperando Hyprland 0.57+) |
 | [Dock restilizada, apps fixados, Não perturbar, overview próprio](ideias/009-dock-overview-dnd.md) | Feito |
+| [Subagente crítico (escritor, crítico, melhoria)](ideias/010-critico.md) | Em andamento |
