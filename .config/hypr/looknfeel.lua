@@ -24,7 +24,7 @@ hl.config({
 -- https://wiki.hypr.land/Configuring/Basics/Variables/#decoration
 hl.config({
   decoration = {
-    rounding = 8,
+    rounding = 12,
 
     -- Dim unfocused windows (0.0 = no dim, 1.0 = fully dimmed).
     dim_inactive = true,
