@@ -96,6 +96,7 @@
 - `HANDOFF.md`: Handoff (curto): Hyprland/Omarchy do mancato
 - `README.md`: Omarchy Dotfiles
 - `docs/HISTORICO.md`: Histórico completo (ex-HANDOFF, preservado na íntegra em 13/11/2026)
+- `docs/PESQUISA-DISTROS.md`: Pesquisa: ideias de distros e rices para o Omarchy/Hyprland
 - `ideias.md`: Ideias do projeto (log vivo)
 - `scripts/graph-refresh.sh`: Reconstrói graphify-out/: AST do código (sem LLM) + camada semântica versionada (docs/graph/semantic.json).
 - `scripts/graph-test.sh`: Teste de regressão do grafo: cada pergunta deve devolver TODAS as substrings esperadas (separadas por |).
