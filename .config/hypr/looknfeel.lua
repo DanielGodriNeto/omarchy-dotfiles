@@ -39,24 +39,55 @@ hl.config({
 })
 
 -- Blur is the priciest of these on the Iris Xe iGPU (no dGPU on this
--- machine) — off by default, uncomment to try it.
--- hl.config({
---   decoration = {
---     blur = {
---       enabled = true,
---       size = 4,
---       passes = 2,
---     },
---   },
--- })
+-- machine). Bumped stronger than Hyprland's defaults; watch for GPU load
+-- if this drags on this hardware. Noise stays up from the 0.0117 default
+-- so the little bit of desktop that bleeds through window transparency
+-- reads as grain/color, not detail.
+hl.config({
+  decoration = {
+    blur = {
+      enabled = true,
+      size = 8,
+      passes = 3,
+      noise = 0.08,
+      new_optimizations = true,
+    },
+  },
+})
 
 -- https://wiki.hypr.land/Configuring/Basics/Variables/#animations
--- hl.config({
---   animations = {
---     -- Disable all animations.
---     enabled = false,
---   },
--- })
+-- Fluid, macOS-like motion: one soft ease-out curve, ~200-300ms, workspace slide.
+hl.config({
+  animations = {
+    enabled = true,
+  },
+})
+
+hl.curve("fluid", { type = "bezier", points = { { 0.22, 1 }, { 0.36, 1 } } })
+hl.curve("fluidOut", { type = "bezier", points = { { 0.4, 0 }, { 0.6, 1 } } })
+
+hl.animation({ leaf = "global", enabled = true, speed = 3, bezier = "fluid" })
+hl.animation({ leaf = "windows", enabled = true, speed = 3, bezier = "fluid" })
+hl.animation({ leaf = "windowsIn", enabled = true, speed = 2.6, bezier = "fluid", style = "popin 94%" })
+hl.animation({ leaf = "windowsOut", enabled = true, speed = 1.8, bezier = "fluidOut", style = "popin 94%" })
+hl.animation({ leaf = "windowsMove", enabled = true, speed = 3, bezier = "fluid" })
+hl.animation({ leaf = "border", enabled = true, speed = 3, bezier = "fluid" })
+hl.animation({ leaf = "fade", enabled = true, speed = 2.4, bezier = "fluid" })
+hl.animation({ leaf = "fadeSwitch", enabled = false })
+hl.animation({ leaf = "layers", enabled = true, speed = 2.6, bezier = "fluid" })
+hl.animation({ leaf = "layersIn", enabled = true, speed = 2.6, bezier = "fluid", style = "fade" })
+hl.animation({ leaf = "layersOut", enabled = true, speed = 1.8, bezier = "fluidOut", style = "fade" })
+hl.animation({ leaf = "workspaces", enabled = true, speed = 3.2, bezier = "fluid", style = "slide" })
+
+-- Layout em rolagem (colunas deslizando como no Niri). SUPER+L volta ao dwindle por workspace.
+hl.config({
+  general = { layout = "scrolling" },
+  scrolling = {
+    column_width = 0.5,
+    explicit_column_widths = "0.333, 0.5, 0.667, 1.0",
+    focus_fit_method = 0,
+  },
+})
 
 -- https://wiki.hypr.land/Configuring/Basics/Variables/#layout
 -- hl.config({
@@ -73,3 +104,8 @@ hl.config({
 --     column_width = 0.97,
 --   },
 -- })
+
+-- Opt another application in to Omarchy's standard transparency.
+-- Find its class with: hyprctl clients
+-- o.transparent_window("my-app")
+-- o.transparent_window("my-app", "0.9 0.85") -- Custom active/inactive opacity.
