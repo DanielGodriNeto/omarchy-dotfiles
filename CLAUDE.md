@@ -1,24 +1,34 @@
 # omarchy-dotfiles: regras de trabalho
 
-## Grafo (graphify) primeiro
-- `graphify-out/GRAPH_REPORT.md` e `graphify-out/graph.json` são o mapa do repo. Antes de ler arquivos, consulte:
-  `graphify query "<pergunta>"`, `graphify path "A" "B"`, `graphify explain "<nó>"`.
-- Só abra o arquivo-fonte depois que o grafo apontar qual (use `source_location`). Não releia o HANDOFF.md inteiro: consulte o grafo.
-- `graphify-out/` é ignorado pelo git (local). Se estiver ausente ou velho: `graphify update .` (ou `/graphify . --update`).
-- Depois de mudar arquivos, atualize o grafo (incremental, barato).
+Repositório PÚBLICO de personalizações do Omarchy/Hyprland (caminhos espelham o `$HOME`). Usuário: fala português, quer respostas curtas e decisões pequenas tomadas por você.
 
-## Custo e contexto
-- Tarefas simples/mecânicas (busca, logs, typo, formatação, atualizar o grafo): subagente Haiku.
-- Código com julgamento: Sonnet. Design/arquitetura: modelo principal.
-- Um subagente Haiku "bibliotecário" mantém o grafo atualizado durante o trabalho; ao final, uma verificação confere que grafo, HANDOFF.md e código estão coesos.
-- Uma tarefa por conversa: ao terminar um assunto, sugerir novo chat e deixar o resumo no HANDOFF.md (curto).
-- Avisar o usuário quando o uso (`/usage`) estiver alto e propor delegar mais a Haiku.
+## Regras invioláveis
+- Nunca rode `painting-theme next` (nem `omarchy theme set`) direto do app Claude: ele roda com `no_new_privs`, o `sudo` falha e aparece um aviso falso do navegador. Use `systemd-run --user --collect -p KillMode=process painting-theme next`.
+- Wikimedia Commons: espaçar chamadas de API em 2,5 s ou mais. Met Museum e Art Institute têm anti-bot: não contornar.
+- Nunca edite `/usr/share/omarchy/`; tudo vai em `~/.config` e `~/.local`. Faça backup antes de editar arquivo vivo.
+- Plugin QML novo ou alterado exige `omarchy restart shell`. Salvar `looknfeel.lua`, `input.lua` ou `bindings.lua` recarrega o Hyprland.
+- **Nunca ative o layout `scrolling` nem alterne layouts de workspace:** o Hyprland 0.56.2 crasha ao desmontá-lo (padrão agora é dwindle). Religar só após atualizar para 0.57+.
+- Repositório público: sem segredos, tokens, e-mail ou caminhos privados; escaneie o diff antes de cada commit. Commits pequenos, sem atribuição de IA.
+- Mudança visual: mockup primeiro, depois aplicar com backup, validar (`hyprctl configerrors`) e só então commitar.
 
-## Automação do grafo
-- `scripts/graph-refresh.sh` reconstrói o grafo (AST sem LLM + camada semântica salva em `graphify-out/semantic.json`). O hook local `.git/hooks/post-commit` roda isso sozinho depois de cada commit.
-- Se aparecer `graphify-out/STALE-SEMANTIC`, QML/.md mudaram: um subagente Haiku refaz a extração semântica (skill graphify, só dos arquivos mudados) e atualiza `semantic.json` e `semantic.sha`.
-- **Verificação final:** um subagente separado (reviewer) confere no fim de cada rodada que grafo, `HANDOFF.md`, `ideias.md` e código estão coesos e que nada importante foi perdido.
+## Como buscar (nesta ordem)
+1. `docs/MAPA.md` (gerado): "onde fica X" por arquivo.
+2. `rg` para literais (função, atalho, comando, chave de config). Responde em segundos.
+3. `graphify query "<pergunta>"` só para relações e visão geral. É **pista, nunca prova**: o grafo é cego a parte da configuração e já errou respostas com confiança (`docs/graph/AVALIACAO.md`).
+4. Leia o arquivo-fonte antes de editar ou afirmar qualquer coisa.
 
-## Memória do projeto
-- `HANDOFF.md` é curto (estado atual). O histórico completo está em `docs/HISTORICO.md`.
-- `ideias.md` é o log das ideias do usuário: cada ideia tem arquivo em `ideias/NNN-slug.md` com estado (Pendente, Em andamento, Bloqueado, Feito). Toda ideia nova entra ali; mudou o estado, atualize o arquivo e a tabela.
+## Fonte da verdade
+Código > `HANDOFF.md` (estado atual e ponteiros) > grafo (derivado, descartável). Um clone novo funciona só com `rg`; o grafo é opcional: `uv tool install graphifyy==0.9.108`, depois `scripts/install-hooks.sh` e `scripts/graph-refresh.sh`. O hook de pós-commit nunca bloqueia o commit (roda em segundo plano, só AST); a camada semântica por LLM é sob demanda (arquivo `graphify-out/STALE-SEMANTIC`).
+
+## Subagentes
+- **Haiku:** só leitura, busca e logs; única escrita permitida é atualizar o grafo e `docs/MAPA.md`.
+- **Sonnet:** implementa.
+- **Verificador** (subagente separado): roda checagens executáveis e cita a saída: `luac -p` nos `.lua`, `python3 -m py_compile`, `jq empty` nos `.json`, `systemd-analyze verify --user` no `.service`, `scripts/graph-test.sh`. Confere também que cada arquivo citado no `HANDOFF.md` existe e que a linha "Verificado no commit" bate com o HEAD.
+
+## Escritor, crítico e melhoria
+- **Escritor** (Sonnet) implementa. **Crítico** é um subagente separado, com contexto novo (`critic` para planos, `reviewer` para diffs): recebe só os requisitos originais e o diff, nunca o raciocínio do escritor. Reporta apenas problemas de severidade média ou alta de correção, requisito ou segurança, cada um com evidência executável (saída de comando ou linha do arquivo) e correção de uma linha; sem elogio nem estilo. O escritor corrige e o verificador reexecuta.
+- Limite: 1 rodada (2 se houver problema alto); para quando não houver achado médio ou alto. Só ative quando o diff tocar 3 ou mais arquivos ou algo de risco (config do Hyprland, `painting-theme`, hooks, `shell.json`, qualquer coisa que vá ao GitHub). Mudança trivial dispensa.
+- Crítico acha falhas de lógica e requisito; verificador roda checagens automáticas. Um não substitui o outro.
+
+## Continuidade
+Uma tarefa por conversa. Ao terminar, atualize o `HANDOFF.md` (curto) e `ideias.md` (cada ideia em `ideias/NNN-slug.md`; subagentes não apagam ideias, só mudam o estado). Histórico completo: `docs/HISTORICO.md`.
