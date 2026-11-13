@@ -6,8 +6,8 @@ import qs.Commons
 import qs.Commons as Commons
 import qs.Ui
 
-// Painting panel: the current painting, like / dislike with the reasons that
-// should (or should not) teach the taste model, change now, time-of-day switch.
+// Painting panel: the current painting, one-click like (teaches everything) and
+// dislike with the reasons that should (or should not) teach the taste model, change now, time-of-day switch.
 // Logic lives in ~/.local/bin/painting-theme.
 Item {
   id: root
@@ -235,7 +235,7 @@ Item {
           Chip {
             label: "Gostei"
             on: root.stage === "like" || (root.stage === "idle" && root.myRating === 1)
-            onClicked: { root.picked = []; root.stage = "like" }
+            onClicked: { root.picked = []; root.stage = "like"; root.confirmRating() }
           }
           Chip {
             label: "Não gostei"
@@ -249,7 +249,7 @@ Item {
           width: parent.width
           spacing: Style.space(8)
           Text {
-            text: root.stage === "like" ? "O que você gostou? (nada marcado = tudo)" : "Por que não gostou? (nada marcado = tudo)"
+            text: "Por que não gostou? (nada marcado = tudo)"
             color: root.textColor
             opacity: 0.75
             font.family: Style.font.menuFamily
@@ -275,7 +275,7 @@ Item {
             }
           }
           Chip {
-            label: root.stage === "dislike" ? "Confirmar e trocar" : "Confirmar"
+            label: "Confirmar e trocar"
             on: true
             onClicked: root.confirmRating()
           }

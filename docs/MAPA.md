@@ -68,7 +68,7 @@
 - `.config/omarchy/plugins/mancato.notifications/manifest.json`:   "description": "Notification daemon: grouped stacks, inline actions, Do Not Disturb, and history",
 - `.config/omarchy/plugins/mancato.overview/Overview.qml`: Close first, then switch: closing the overlay hands keyboard focus back
 - `.config/omarchy/plugins/mancato.overview/manifest.json`:   "description": "Full-screen grid of workspaces with their windows",
-- `.config/omarchy/plugins/mancato.painting/Painting.qml`: Painting panel: the current painting, like / dislike with the reasons that
+- `.config/omarchy/plugins/mancato.painting/Painting.qml`: Painting panel: the current painting, one-click like (teaches everything) and
 - `.config/omarchy/plugins/mancato.painting/manifest.json`:   "description": "Current painting with like/dislike feedback, change now and time-of-day switch",
 - `.config/omarchy/shell.json`:   "bar": {
 - `.config/omarchy/themed/shell.toml.tpl`: OVERRIDE of default/themed/shell.toml.tpl (calm, macOS/Spotlight-like).
