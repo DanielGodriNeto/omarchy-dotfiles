@@ -13,3 +13,12 @@
 - Um subagente Haiku "bibliotecário" mantém o grafo atualizado durante o trabalho; ao final, uma verificação confere que grafo, HANDOFF.md e código estão coesos.
 - Uma tarefa por conversa: ao terminar um assunto, sugerir novo chat e deixar o resumo no HANDOFF.md (curto).
 - Avisar o usuário quando o uso (`/usage`) estiver alto e propor delegar mais a Haiku.
+
+## Automação do grafo
+- `scripts/graph-refresh.sh` reconstrói o grafo (AST sem LLM + camada semântica salva em `graphify-out/semantic.json`). O hook local `.git/hooks/post-commit` roda isso sozinho depois de cada commit.
+- Se aparecer `graphify-out/STALE-SEMANTIC`, QML/.md mudaram: um subagente Haiku refaz a extração semântica (skill graphify, só dos arquivos mudados) e atualiza `semantic.json` e `semantic.sha`.
+- **Verificação final:** um subagente separado (reviewer) confere no fim de cada rodada que grafo, `HANDOFF.md`, `ideias.md` e código estão coesos e que nada importante foi perdido.
+
+## Memória do projeto
+- `HANDOFF.md` é curto (estado atual). O histórico completo está em `docs/HISTORICO.md`.
+- `ideias.md` é o log das ideias do usuário: cada ideia tem arquivo em `ideias/NNN-slug.md` com estado (Pendente, Em andamento, Bloqueado, Feito). Toda ideia nova entra ali; mudou o estado, atualize o arquivo e a tabela.
