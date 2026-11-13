@@ -22,4 +22,4 @@ Regra: toda ideia nova do usuário vira um arquivo em `ideias/NNN-slug.md` e uma
 | [Conferir vinheta do wallpaper com as pinturas](ideias/016-vinheta-wallpaper.md) | Pendente |
 | [Cantos ativos](ideias/017-cantos-ativos.md) | Feito |
 | [Gosto de pinturas](ideias/018-gosto-pinturas.md) | Em andamento (feito; falta uso e ajuste) |
-| [Pesquisa de distros e rices para inspirar o visual](ideias/019-pesquisa-distros.md) | Em andamento (3 frentes; notas em docs/PESQUISA-DISTROS.md) |
+| [Pesquisa de distros e rices para inspirar o visual](ideias/019-pesquisa-distros.md) | Pesquisa feita (3 frentes em docs/PESQUISA-DISTROS.md); falta o usuário escolher o que aplicar |

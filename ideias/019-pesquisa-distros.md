@@ -1,6 +1,6 @@
 # Pesquisa de distros e rices para inspirar o visual
 
-- **Estado:** Em andamento
+- **Estado:** Pesquisa feita; aguardando o usuário escolher o que aplicar
 - **Origem:** pedido do usuário (13/11/2026)
 - **Resumo:** Manter o Omarchy/Hyprland, mas puxar o visual para algo mais macOS-like, fluido e clean. Pesquisar distros (elementary OS, Deepin, COSMIC, Zorin, GNOME, KDE, Bazzite, NixOS), rices de Hyprland/Quickshell e componentes avulsos, e anotar tudo no projeto para não precisar reexplicar.
 

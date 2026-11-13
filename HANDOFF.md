@@ -13,6 +13,8 @@ Histórico completo e fatos técnicos: [docs/HISTORICO.md](docs/HISTORICO.md). I
 - Plymouth Pintura instalado (foto do momento; atualizar = `system/plymouth-pintura/build.sh` + `install.sh` com sudo).
 - Feitos (13/11): cantos ativos, expose (SUPER+SHIFT+grave), histórico de notificações (SUPER+ALT+N), relógio/legenda no desktop, `focus-mode` (SUPER+ALT+Z). Pendentes: 015 (gestos), 016 (vinheta).
 
+- Pesquisa de distros/rices (ideia 019) concluída em [docs/PESQUISA-DISTROS.md](docs/PESQUISA-DISTROS.md): ranking e síntese de ordem de aplicação no fim do doc. Falta o usuário escolher; cada escolha vira ideia 020+. Parâmetros do lado Hyprland vieram de memória: conferir na 0.56.2 antes de aplicar. Licenças: end-4 e Caelestia são GPL-3 (só reescrever); MacShell é MIT.
+
 - Pintura: painel no clique esquerdo do botão da barra (`mancato.painting`): Gostei (1 clique) / Não gostei (com motivos) alimentam `~/.config/painting-theme/taste.json`; 30% dos sorteios exploram. Acervo com ~1267 pinturas (`painting-theme-discover` amplia, depois `meta`, `lum`, `features`).
 
 ## Armadilhas essenciais
