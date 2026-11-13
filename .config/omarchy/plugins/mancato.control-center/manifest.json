@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "mancato.control-center",
+  "name": "Control center",
+  "version": "1.0.0",
+  "author": "mancato",
+  "description": "Quick toggles and sliders: Wi-Fi, Bluetooth, night light, power profile, volume, brightness",
+  "kinds": ["bar-widget"],
+  "entryPoints": { "barWidget": "Panel.qml" },
+  "barWidget": {
+    "displayName": "Control center",
+    "description": "Quick toggles and sliders",
+    "category": "System",
+    "allowMultiple": false
+  }
+}

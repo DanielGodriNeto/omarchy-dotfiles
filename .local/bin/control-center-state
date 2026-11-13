@@ -1,0 +1,12 @@
+#!/bin/bash
+# Estado dos controles rapidos em JSON (usado pelo plugin mancato.control-center).
+wifi=false; [[ $(nmcli radio wifi 2>/dev/null) == enabled ]] && wifi=true
+bt=false; bluetoothctl show 2>/dev/null | grep -q "Powered: yes" && bt=true
+night=$(omarchy-toggle-nightlight --status 2>/dev/null | jq -r '.enabled // false')
+profile=$(powerprofilesctl get 2>/dev/null)
+vol=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null)
+volume=$(grep -oE '[0-9.]+' <<<"$vol" | head -1); muted=false; [[ $vol == *MUTED* ]] && muted=true
+bright=$(brightnessctl -m 2>/dev/null | cut -d, -f4 | tr -d %)
+jq -cn --argjson wifi "$wifi" --argjson bt "$bt" --argjson night "${night:-false}" --arg profile "$profile" \
+  --argjson volume "${volume:-0}" --argjson muted "$muted" --argjson brightness "${bright:-50}" \
+  '{wifi:$wifi,bt:$bt,night:$night,profile:$profile,volume:$volume,muted:$muted,brightness:$brightness}'
