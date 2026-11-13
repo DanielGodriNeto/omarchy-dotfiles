@@ -13,6 +13,8 @@ Histórico completo e fatos técnicos: [docs/HISTORICO.md](docs/HISTORICO.md). I
 - Plymouth Pintura instalado (foto do momento; atualizar = `system/plymouth-pintura/build.sh` + `install.sh` com sudo).
 - Feitos (13/11): cantos ativos, expose (SUPER+SHIFT+grave), histórico de notificações (SUPER+ALT+N), relógio/legenda no desktop, `focus-mode` (SUPER+ALT+Z). Pendentes: 015 (gestos), 016 (vinheta).
 
+- Pintura: painel no clique esquerdo do botão da barra (`mancato.painting`): Gostei (1 clique) / Não gostei (com motivos) alimentam `~/.config/painting-theme/taste.json`; 30% dos sorteios exploram. Acervo com ~1267 pinturas (`painting-theme-discover` amplia, depois `meta`, `lum`, `features`).
+
 ## Armadilhas essenciais
 Vivem em [CLAUDE.md](CLAUDE.md), seção "Regras invioláveis" (fonte única; leia antes de qualquer mudança).
 

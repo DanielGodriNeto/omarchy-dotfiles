@@ -21,3 +21,4 @@ Regra: toda ideia nova do usuário vira um arquivo em `ideias/NNN-slug.md` e uma
 | [Gestos de 3 dedos para overview e peek](ideias/015-gestos-3-dedos.md) | Pendente |
 | [Conferir vinheta do wallpaper com as pinturas](ideias/016-vinheta-wallpaper.md) | Pendente |
 | [Cantos ativos](ideias/017-cantos-ativos.md) | Feito |
+| [Gosto de pinturas](ideias/018-gosto-pinturas.md) | Em andamento (feito; falta uso e ajuste) |
