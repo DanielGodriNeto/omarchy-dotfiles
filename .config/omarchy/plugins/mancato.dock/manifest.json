@@ -6,7 +6,8 @@
   "author": "Omarchy",
   "description": "App dock shown on floating workspaces",
   "kinds": [
-    "service"
+    "service",
+    "menu"
   ],
   "entryPoints": {
     "service": "Dock.qml"

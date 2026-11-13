@@ -47,11 +47,13 @@ PanelWindow {
   readonly property bool tucked: autohide && !(revealed || menuOpen || dragging || insertIndex >= 0)
   readonly property bool contentShown: shown && !tucked
 
-  readonly property int gap: Style.spacing.xs
-  readonly property int iconSize: Math.round(36 * Style.fontScale)
+  // The rounded backdrop reaches `pad` past the slots; `gap` leaves it room to the screen edge.
+  readonly property int pad: Style.spacing.md
+  readonly property int gap: Style.spacing.lg + pad
+  readonly property int iconSize: Math.round(40 * Style.fontScale)
   // Each app has a square slot with its icon in the middle, and the slots run
   // straight to the edge of the dock.
-  readonly property int iconInset: Style.spacing.md
+  readonly property int iconInset: Style.spacing.sm
   readonly property int slotSize: iconSize + iconInset * 2
   // A pinned app that is not running is drawn faded.
   readonly property real idleOpacity: 0.7
@@ -307,6 +309,15 @@ PanelWindow {
       }
     }
 
+    BorderSurface {
+      id: backdrop
+      anchors.fill: parent
+      anchors.margins: -window.pad
+      radius: Math.max(14, Style.cornerRadius + 2)
+      color: Commons.Color.popups.background
+      borderSpec: Border.surfaceSpec("popups", "border", Commons.Color.popups.border, Style.normalBorderWidth)
+    }
+
     Grid {
       id: slots
       anchors.centerIn: parent
@@ -515,6 +526,19 @@ PanelWindow {
       transformOrigin: window.popOrigin
 
       Behavior on scale { NumberAnimation { duration: Style.duration(120); easing.type: Easing.OutCubic } }
+    }
+
+    // Dot under a running app, in the theme accent.
+    Rectangle {
+      visible: appSlot.windowCount > 0
+      width: 4
+      height: 4
+      radius: 2
+      color: Commons.Color.accent
+      x: window.position === "left" ? 1 : window.position === "right" ? appSlot.width - width - 1
+        : Math.round((appSlot.width - width) / 2)
+      y: window.position === "top" ? 1 : window.position === "bottom" ? appSlot.height - height - 1
+        : Math.round((appSlot.height - height) / 2)
     }
 
     // With animations off it holds still rather than spinning through

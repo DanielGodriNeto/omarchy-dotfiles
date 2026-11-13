@@ -15,8 +15,21 @@ Item {
   property var manifest: null
 
   readonly property var appLibrary: shell ? shell.appLibrary : null
-  readonly property var dockConfig: shell && shell.shellConfig && shell.shellConfig.dock ? shell.shellConfig.dock : ({})
-  readonly property var defaultDockConfig: shell && shell.defaultsConfig && shell.defaultsConfig.dock ? shell.defaultsConfig.dock : ({})
+  // A third-party plugin is not handed the shell config, so the dock keys are
+  // read from shell.json directly and followed as it changes.
+  property var userConfig: ({})
+  readonly property var dockConfig: userConfig && userConfig.dock ? userConfig.dock : ({})
+  readonly property var defaultDockConfig: ({})
+
+  FileView {
+    id: configFile
+    path: Quickshell.env("HOME") + "/.config/omarchy/shell.json"
+    watchChanges: true
+    onFileChanged: reload()
+    onLoaded: {
+      try { root.userConfig = JSON.parse(text()) } catch (e) { console.warn("mancato.dock: shell.json unreadable:", e) }
+    }
+  }
   readonly property string position: DockModel.normalizePosition(dockConfig.position)
   readonly property bool vertical: DockModel.isVertical(position)
   readonly property bool autohide: dockConfig.autohide === true

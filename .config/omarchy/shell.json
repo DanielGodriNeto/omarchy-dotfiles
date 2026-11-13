@@ -129,7 +129,17 @@
     "omarchy.dock"
   ],
   "dock": {
-    "autohide": true
+    "autohide": true,
+    "pinned": [
+      "foot",
+      "org.gnome.Nautilus",
+      "chromium",
+      "com.microsoft.VSCode",
+      "obsidian",
+      "com.anthropic.Claude",
+      "spotify",
+      "Discord"
+    ]
   },
   "idle": {
     "lock": 300,
