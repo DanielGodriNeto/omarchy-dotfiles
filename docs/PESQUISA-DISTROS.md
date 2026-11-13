@@ -20,7 +20,7 @@ Nada foi instalado. Ordenado por impacto vs esforço; risco entre parênteses.
 
 | Item | O que é | Como | Estado |
 |---|---|---|---|
-| Vicinae | Launcher estilo Raycast/Spotlight (apps, arquivos, clipboard, snippets, extensões) | AUR `vicinae-bin`; GPL-3, v0.30.0 de 07/nov/2026, usa QtLayerShell [verificado: github.com/vicinaehq/vicinae/releases] | Candidato forte. Conflita com Walker no atalho; o menu do Omarchy depende do Walker, então não remover (baixo) |
+| Vicinae | Launcher estilo Raycast/Spotlight (apps, arquivos, clipboard, snippets, extensões) | AUR `vicinae-bin`; GPL-3, v0.30.0 de 07/nov/2026, usa QtLayerShell [verificado: github.com/vicinaehq/vicinae/releases] | Feito (ideia 021). SUPER+SPACE segue como menu do Omarchy; o Walker NÃO existe no 4.0 (correção, ver ideia 021) (baixo) |
 | LocalSend | "AirDrop" na LAN, criptografado | AUR/pacman `localsend` 1.18.x [verificado: aur.archlinux.org/packages/localsend] | Candidato forte. Abre porta na LAN, conferir firewall (porta não verificada) (baixo) |
 | Sushi | Quick Look: espaço no Nautilus mostra preview | `sushi` 51 (GTK4), em extra-testing [verificado: archlinux.org/packages/extra-testing/x86_64/sushi] | Funcionar fora de sessão GNOME [não verificado] (baixo/médio) |
 | Gestos de trackpad | 3/4 dedos para workspaces, estilo Mission Control | `hl.gesture(...)` no Lua, sem instalar [verificado: wiki.hypr.land 0.56 Gestures] | Já é a ideia 015 (pendente). Há relato de float/fullscreen com defeito no 0.55.2 |

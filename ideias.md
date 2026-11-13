@@ -24,3 +24,4 @@ Regra: toda ideia nova do usuário vira um arquivo em `ideias/NNN-slug.md` e uma
 | [Gosto de pinturas](ideias/018-gosto-pinturas.md) | Em andamento (feito; falta uso e ajuste) |
 | [Pesquisa de distros e rices para inspirar o visual](ideias/019-pesquisa-distros.md) | Pesquisa feita (3 frentes em docs/PESQUISA-DISTROS.md); falta o usuário escolher o que aplicar |
 | [Squircle, sombra e curvas de janela](ideias/020-squircle-sombra-curvas.md) | Feito (falta o usuário olhar e ajustar) |
+| [Vicinae (launcher estilo Spotlight)](ideias/021-vicinae-launcher.md) | Feito (falta usar e ver numa troca de tema real) |

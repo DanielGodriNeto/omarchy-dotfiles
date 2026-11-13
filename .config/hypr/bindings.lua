@@ -23,6 +23,10 @@
 -- Disable a default binding without replacing it.
 -- hl.unbind("SUPER + SHIFT + B")
 
+-- Vicinae launcher (Spotlight style: apps, files, calculator, clipboard history).
+-- SUPER+SPACE stays as the Omarchy menu; the daemon runs as a user service.
+o.bind("SUPER + R", "Vicinae launcher", "vicinae toggle")
+
 -- Peek at the desktop background (park open windows in a hidden special
 -- workspace, then bring them back on the next press).
 o.bind("SUPER + D", "Peek desktop", "omarchy-peek-desktop")

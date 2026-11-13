@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# Copies the rendered Vicinae theme (vicinae.toml, from themed/vicinae.toml.tpl)
+# into Vicinae's user theme directory and re-applies it on every theme change.
+# Vicinae picks the theme by id (file name without .toml).
+
+THEME_FILE="$HOME/.local/state/omarchy/current/theme/vicinae.toml"
+DEST_DIR="$HOME/.local/share/vicinae/themes"
+
+[[ -f $THEME_FILE ]] || exit 0
+command -v vicinae >/dev/null || exit 0
+
+mkdir -p "$DEST_DIR"
+cp -f "$THEME_FILE" "$DEST_DIR/omarchy.toml"
+vicinae theme set omarchy >/dev/null 2>&1 || true

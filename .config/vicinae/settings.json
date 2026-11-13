@@ -1,0 +1,19 @@
+// Vicinae launcher settings. The theme "omarchy" is generated from the active Omarchy
+// theme (themed/vicinae.toml.tpl + hooks/theme-set.d/30-sync-vicinae-theme).
+{
+   "$schema": "https://vicinae.com/schemas/config.json",
+   "theme": {
+      "light": { "name": "omarchy" },
+      "dark": { "name": "omarchy" }
+   },
+   // No usage statistics sent to the Vicinae server.
+   "telemetry": { "system_info": false },
+   // The input server needs cap_dac_override, which was removed on purpose; paste falls back to copy.
+   "input_server": { "enabled": false },
+   "launcher_window": {
+      // Matches Hyprland rounding (looknfeel.lua).
+      "rounding": 12,
+      // Spotlight style: only the search bar until something is typed.
+      "compact_mode": { "enabled": true }
+   }
+}

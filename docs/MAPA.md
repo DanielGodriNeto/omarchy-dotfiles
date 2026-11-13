@@ -11,6 +11,7 @@
 - `.config/omarchy/bar/modules/system-pill.qml`: Custom bar module (bar.layout entry: { "id": "system-pill", "type": "qml" }).
 - `.config/omarchy/bar/modules/workspace-windows.qml`: Custom bar module (bar.layout entry: { "id": "workspace-windows", "type": "qml" }).
 - `.config/omarchy/extensions/omarchy-menu.jsonc`: Extend the Quickshell Omarchy menu with JSONC. See the stock comments:
+- `.config/omarchy/hooks/theme-set.d/30-sync-vicinae-theme`: Copies the rendered Vicinae theme (vicinae.toml, from themed/vicinae.toml.tpl)
 - `.config/omarchy/plugins/mancato.bar/Bar.qml`: The omarchy-shell host injects omarchyPath from OMARCHY_PATH.
 - `.config/omarchy/plugins/mancato.bar/BarModel.js`: The bar's sections in the order they run along it, and tray, drawn inside
 - `.config/omarchy/plugins/mancato.bar/README.md`: Omarchy bar
@@ -72,8 +73,10 @@
 - `.config/omarchy/plugins/mancato.painting/manifest.json`:   "description": "Current painting with like/dislike feedback, change now and time-of-day switch",
 - `.config/omarchy/shell.json`:   "bar": {
 - `.config/omarchy/themed/shell.toml.tpl`: OVERRIDE of default/themed/shell.toml.tpl (calm, macOS/Spotlight-like).
+- `.config/omarchy/themed/vicinae.toml.tpl`: Vicinae launcher theme. Rendered by omarchy-theme-set-templates on every theme
 - `.config/starship.toml`: Uses the terminal's ANSI colors (red/green/yellow/blue/magenta/cyan), which
 - `.config/systemd/user/painting-theme.service`: Description=Troca automatica da pintura do tema (login, acordar, tempo)
+- `.config/vicinae/settings.json`: Vicinae launcher settings. The theme "omarchy" is generated from the active Omarchy
 - `.gitignore`: /graphify-out/
 - `.local/bin/control-center-state`: Estado dos controles rapidos em JSON (usado pelo plugin mancato.control-center).
 - `.local/bin/fastfetch-art`: """Pinta o logo do fastfetch com uma pintura de natureza no tom do tema Omarchy (sorteada dentro de uma faixa de cores)."""
