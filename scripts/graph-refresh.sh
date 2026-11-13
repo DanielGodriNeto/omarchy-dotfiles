@@ -9,7 +9,7 @@ trap 'rm -rf "$ST"' EXIT
 V=$(graphify --version 2>/dev/null | awk '{print $NF}')
 [ "$V" = "0.9.108" ] || echo "aviso: graphify $V instalado; testado com 0.9.108" >&2
 rm -rf "$ST"; mkdir -p "$ST"
-git ls-files | grep -v -e fastfetch-art -e '\.json$' -e '^scripts/' -e '^ideias' | while read -r f; do
+git ls-files | grep -v -e fastfetch-art -e '\.json$' -e '^scripts/' -e '^ideias' -e '^docs/' -e '^CLAUDE.md$' | while read -r f; do
   [ -f "$f" ] || continue; mkdir -p "$ST/$(dirname "$f")"
   case "$f" in *.qml|*.lua|*.service|*.jsonc|*.toml|*.tpl) cp "$f" "$ST/$f.txt";; *) cp "$f" "$ST/$f";; esac
 done
