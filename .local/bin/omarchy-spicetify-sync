@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # Generates/updates a spicetify "Text" theme color scheme from the active
-# Omarchy theme's colors.toml and applies it. Themes use two slightly
+# Omarchy theme's colors.toml. It only runs `spicetify apply` when Spotify is
+# closed (never kills or restarts it); with Spotify open it leaves a marker
+# and the new colors show after the next apply. Pass --no-apply to only
+# generate the color scheme. Themes use two slightly
 # different key naming schemes (e.g. lighter_bg vs lighter_background), so
 # each color is looked up with a fallback chain across both.
 
@@ -8,6 +11,7 @@ import configparser
 import pathlib
 import re
 import subprocess
+import sys
 
 CURRENT = pathlib.Path.home() / ".local/state/omarchy/current"
 INI_PATH = pathlib.Path.home() / ".config/spicetify/Themes/text/color.ini"
@@ -65,8 +69,15 @@ def main():
 
     subprocess.run(["spicetify", "config", "current_theme", "text"], check=False)
     subprocess.run(["spicetify", "config", "color_scheme", section], check=False)
-    subprocess.run(["pkill", "-x", "spotify"], check=False)
+
+    if "--no-apply" in sys.argv:
+        return
+    pending = pathlib.Path.home() / ".local/state/omarchy/spicetify-apply-pending"
+    if subprocess.run(["pgrep", "-x", "spotify"], capture_output=True).returncode == 0:
+        pending.touch()
+        return
     subprocess.run(["spicetify", "apply"], check=False)
+    pending.unlink(missing_ok=True)
 
 
 if __name__ == "__main__":

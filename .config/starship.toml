@@ -1,27 +1,27 @@
-# Cyberpunk Edgerunners palette (~/.config/omarchy/themes/cyberpunk-edgerunners/colors.toml):
-# accent/magenta #DA11C9, bright cyan #46FEEC, neon yellow #FFFF4C, hot pink #ED4BA8.
+# Uses the terminal's ANSI colors (red/green/yellow/blue/magenta/cyan), which
+# the active Omarchy theme (colors.toml) controls, so the prompt follows it.
 add_newline = true
 command_timeout = 200
 format = "[$directory$git_branch$git_status]($style)$character"
 
 [character]
-error_symbol = "[✗](bold #ED4BA8)"
-success_symbol = "[❯](bold #46FEEC)"
+error_symbol = "[✗](bold red)"
+success_symbol = "[❯](bold cyan)"
 
 [directory]
 truncation_length = 2
 truncation_symbol = "…/"
-style = "bold #DA11C9"
-repo_root_style = "bold #46FEEC"
+style = "bold magenta"
+repo_root_style = "bold cyan"
 repo_root_format = "[$repo_root]($repo_root_style)[$path]($style)[$read_only]($read_only_style) "
 
 [git_branch]
 format = "[$branch]($style) "
-style = "italic #FFFF4C"
+style = "italic yellow"
 
 [git_status]
 format     = '[$all_status]($style)'
-style      = "#ED4BA8"
+style      = "red"
 ahead      = "⇡${count} "
 diverged   = "⇕⇡${ahead_count}⇣${behind_count} "
 behind     = "⇣${count} "
