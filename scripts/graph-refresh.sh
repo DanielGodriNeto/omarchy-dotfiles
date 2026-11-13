@@ -4,7 +4,10 @@
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 O=graphify-out; mkdir -p $O; [ -f $O/.graphify_python ] || uv tool run --from graphifyy python -c "import sys;print(sys.executable)" > $O/.graphify_python
-PY=$(cat $O/.graphify_python); ST=$O/stage
+PY=$(cat $O/.graphify_python); ST=$O/stage.$$
+trap 'rm -rf "$ST"' EXIT
+V=$(graphify --version 2>/dev/null | awk '{print $NF}')
+[ "$V" = "0.9.108" ] || echo "aviso: graphify $V instalado; testado com 0.9.108" >&2
 rm -rf "$ST"; mkdir -p "$ST"
 git ls-files | grep -v -e fastfetch-art -e '\.json$' -e '^scripts/' -e '^ideias' | while read -r f; do
   [ -f "$f" ] || continue; mkdir -p "$ST/$(dirname "$f")"

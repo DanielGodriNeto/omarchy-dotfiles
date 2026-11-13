@@ -1,7 +1,6 @@
 #!/bin/sh
-# Hook versionado: nunca bloqueia o commit. Tudo em segundo plano, só AST (a camada semântica é sob demanda: STALE-SEMANTIC).
+# Pós-commit: nunca bloqueia. Refresh do grafo em segundo plano, só AST, com lock (a camada semântica é sob demanda: STALE-SEMANTIC).
 cd "$(git rev-parse --show-toplevel)" || exit 0
-mkdir -p graphify-out
-( scripts/map.sh
-  if [ -f graphify-out/.graphify_python ]; then scripts/graph-refresh.sh; fi ) >graphify-out/refresh.log 2>&1 &
+[ -f graphify-out/.graphify_python ] || exit 0
+( flock -n 9 || exit 0; scripts/graph-refresh.sh ) 9>graphify-out/.lock >graphify-out/refresh.log 2>&1 &
 exit 0

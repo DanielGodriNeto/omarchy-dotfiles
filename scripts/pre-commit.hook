@@ -1,0 +1,5 @@
+#!/bin/sh
+# Pré-commit rápido e sem LLM: regenera docs/MAPA.md e o inclui no mesmo commit.
+cd "$(git rev-parse --show-toplevel)" || exit 0
+scripts/map.sh && git add docs/MAPA.md
+exit 0

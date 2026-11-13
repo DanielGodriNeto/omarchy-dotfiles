@@ -2,3 +2,52 @@
 
 - `.config/hypr/autostart.lua`: Extra autostart processes.
 - `.config/hypr/bindings.lua`: Keep only your personal keybinding overrides here. Add new bindings or
+- `.config/hypr/input.lua`: Keep only your personal input overrides here. Uncommented settings below
+- `.config/hypr/looknfeel.lua`: Change the default Omarchy look'n'feel.
+- `.config/omarchy/bar/modules/Pill.qml`: Shared chip chrome for the custom bar widgets in this directory
+- `.config/omarchy/bar/modules/apps-pill.qml`: Custom bar module (bar.layout entry: { "id": "apps-pill", "type": "qml" }).
+- `.config/omarchy/bar/modules/media-spectrum.qml`: Custom bar module (bar.layout entry: { "id": "media-spectrum", "type": "qml" }).
+- `.config/omarchy/bar/modules/painting.qml`: Custom bar module (bar.layout entry: { "id": "painting", "type": "qml" }).
+- `.config/omarchy/bar/modules/system-pill.qml`: Custom bar module (bar.layout entry: { "id": "system-pill", "type": "qml" }).
+- `.config/omarchy/bar/modules/workspace-windows.qml`: Custom bar module (bar.layout entry: { "id": "workspace-windows", "type": "qml" }).
+- `.config/omarchy/extensions/omarchy-menu.jsonc`: Extend the Quickshell Omarchy menu with JSONC. See the stock comments:
+- `.config/omarchy/plugins/mancato.control-center/Panel.qml`: Cursor do teclado: 0-4 tiles (2 colunas, o 5o ocupa a linha), 5 volume, 6 brilho
+- `.config/omarchy/plugins/mancato.control-center/manifest.json`:   "description": "Quick toggles and sliders: Wi-Fi, Bluetooth, night light, power profile, volume, brightness",
+- `.config/omarchy/plugins/mancato.dock/AppGrid.qml`: Every app on one grid. Type to narrow it, arrows to move, Enter to launch.
+- `.config/omarchy/plugins/mancato.dock/Dock.qml`: An app dock that shows on floating workspaces. A floating workspace has no
+- `.config/omarchy/plugins/mancato.dock/DockModel.js`: The dock's state that does not need Quickshell: where it sits, which apps it
+- `.config/omarchy/plugins/mancato.dock/DockWindow.qml`: One screen's dock. It stays mapped and only hides its contents, so switching
+- `.config/omarchy/plugins/mancato.dock/manifest.json`:   "description": "App dock shown on floating workspaces",
+- `.config/omarchy/plugins/mancato.overview/Overview.qml`: Close first, then switch: closing the overlay hands keyboard focus back
+- `.config/omarchy/plugins/mancato.overview/manifest.json`:   "description": "Full-screen grid of workspaces with their windows",
+- `.config/omarchy/shell.json`:   "bar": {
+- `.config/omarchy/themed/shell.toml.tpl`: OVERRIDE of default/themed/shell.toml.tpl (calm, macOS/Spotlight-like).
+- `.config/starship.toml`: Uses the terminal's ANSI colors (red/green/yellow/blue/magenta/cyan), which
+- `.config/systemd/user/painting-theme.service`: Description=Troca automatica da pintura do tema (login, acordar, tempo)
+- `.gitignore`: /graphify-out/
+- `.local/bin/control-center-state`: Estado dos controles rapidos em JSON (usado pelo plugin mancato.control-center).
+- `.local/bin/fastfetch-art`: """Pinta o logo do fastfetch com uma pintura de natureza no tom do tema Omarchy (sorteada dentro de uma faixa de cores)."""
+- `.local/bin/fastfetch-fit`: """fastfetch adaptativo: ajusta imagem e secoes ao tamanho do terminal."""
+- `.local/bin/omarchy-ac-idle-watcher`: Keeps Omarchy's idle/lock "stay awake" state in sync with AC power presence.
+- `.local/bin/omarchy-cliamp-toggle-provider`: omarchy:summary=Switch the cliamp desktop widget's music source between Spotify and local radio
+- `.local/bin/omarchy-peek-desktop`: Toggle "peek at desktop": switch every monitor's view to an unused,
+- `.local/bin/omarchy-spicetify-sync`: Generates/updates a spicetify "Text" theme color scheme from the active
+- `.local/bin/omarchy-toggle-widgets`: omarchy:summary=Toggle the btop + cliamp desktop widgets workspace in and out of view
+- `.local/bin/omarchy-wallpaper-effect`: omarchy:summary=Apply (or, when disabled, remove) a subtle vignette on the current wallpaper
+- `.local/bin/omarchy-wallpaper-effect-toggle`: omarchy:summary=Toggle the wallpaper vignette effect on/off
+- `.local/bin/omarchy-wallpaper-effect-watch`: omarchy:summary=Watch for wallpaper/theme changes and re-apply the vignette effect
+- `.local/bin/omarchy-widget-cliamp-launch`: omarchy:summary=Launch the cliamp desktop widget using the last-selected music source (Spotify or radio)
+- `.local/bin/painting-theme`: """Tema Omarchy gerado a partir de uma pintura: wallpaper + paleta do sistema.
+- `.local/bin/painting-theme-fetch`: Baixa as miniaturas (640 px) do acervo de pinturas listadas em ~/.local/share/fastfetch-art/index.jsonl.
+- `.local/share/painting-theme/shim/omarchy-restart-hyprctl`: Usado so pelo painting-theme durante o peek desktop (Super+D): adia o reload do Hyprland, que
+- `CLAUDE.md`: omarchy-dotfiles: regras de trabalho
+- `HANDOFF.md`: Handoff (curto): Hyprland/Omarchy do mancato
+- `README.md`: Omarchy Dotfiles
+- `docs/HISTORICO.md`: Histórico completo (ex-HANDOFF, preservado na íntegra em 13/11/2026)
+- `ideias.md`: Ideias do projeto (log vivo)
+- `scripts/graph-refresh.sh`: Reconstrói graphify-out/: AST do código (sem LLM) + camada semântica versionada (docs/graph/semantic.json).
+- `scripts/graph-test.sh`: Teste de regressão do grafo: cada pergunta deve devolver TODAS as substrings esperadas (separadas por |).
+- `scripts/install-hooks.sh`: Instala os hooks versionados (pre-commit: MAPA.md; post-commit: grafo em segundo plano).
+- `scripts/map.sh`: Gera docs/MAPA.md: uma linha por arquivo versionado com a primeira descrição/comentário.
+- `scripts/post-commit.hook`: Pós-commit: nunca bloqueia. Refresh do grafo em segundo plano, só AST, com lock (a camada semântica é sob demanda: STALE-SEMANTIC).
+- `scripts/pre-commit.hook`: Pré-commit rápido e sem LLM: regenera docs/MAPA.md e o inclui no mesmo commit.
