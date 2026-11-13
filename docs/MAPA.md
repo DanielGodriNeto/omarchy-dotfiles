@@ -11,6 +11,35 @@
 - `.config/omarchy/bar/modules/system-pill.qml`: Custom bar module (bar.layout entry: { "id": "system-pill", "type": "qml" }).
 - `.config/omarchy/bar/modules/workspace-windows.qml`: Custom bar module (bar.layout entry: { "id": "workspace-windows", "type": "qml" }).
 - `.config/omarchy/extensions/omarchy-menu.jsonc`: Extend the Quickshell Omarchy menu with JSONC. See the stock comments:
+- `.config/omarchy/plugins/mancato.bar/Bar.qml`: The omarchy-shell host injects omarchyPath from OMARCHY_PATH.
+- `.config/omarchy/plugins/mancato.bar/BarModel.js`: The bar's sections in the order they run along it, and tray, drawn inside
+- `.config/omarchy/plugins/mancato.bar/README.md`: Omarchy bar
+- `.config/omarchy/plugins/mancato.bar/indicators/Dnd.qml`: import QtQuick
+- `.config/omarchy/plugins/mancato.bar/indicators/NightLight.qml`: import QtQuick
+- `.config/omarchy/plugins/mancato.bar/indicators/PasswordlessSudo.qml`: No polling: each probe is a hardened script plus sudo calls that can log.
+- `.config/omarchy/plugins/mancato.bar/indicators/Reminder.qml`: import QtQuick
+- `.config/omarchy/plugins/mancato.bar/indicators/RemoteSession.qml`: import QtQuick
+- `.config/omarchy/plugins/mancato.bar/indicators/ScreenRecording.qml`: import QtQuick
+- `.config/omarchy/plugins/mancato.bar/indicators/StayAwake.qml`: A mug without a saucer, which drew a line under the cup.
+- `.config/omarchy/plugins/mancato.bar/manifest.json`:   "description": "Status bar with widgets",
+- `.config/omarchy/plugins/mancato.bar/widgets/ActiveWindow.manifest.json`:   "description": "Title of the focused window",
+- `.config/omarchy/plugins/mancato.bar/widgets/ActiveWindow.qml`: import QtQuick
+- `.config/omarchy/plugins/mancato.bar/widgets/Indicators.manifest.json`:   "description": "Manual state indicators",
+- `.config/omarchy/plugins/mancato.bar/widgets/Indicators.qml`: The active block sits against the widget's fixed edge, and everything that
+- `.config/omarchy/plugins/mancato.bar/widgets/KeyboardLayout.manifest.json`:   "description": "Current keyboard layout and input language, click cycles",
+- `.config/omarchy/plugins/mancato.bar/widgets/KeyboardLayout.qml`: The keyboard the last reading spoke for, which is the one a click switches,
+- `.config/omarchy/plugins/mancato.bar/widgets/KeyboardLayoutModel.js`: Label math for the keyboard layout widget, kept Qt-free so it can be unit
+- `.config/omarchy/plugins/mancato.bar/widgets/Microphone.manifest.json`:   "description": "Mic input state and mute toggle",
+- `.config/omarchy/plugins/mancato.bar/widgets/Microphone.qml`: A virtual source is untyped in Quickshell, so it has no PwNode.audio; its
+- `.config/omarchy/plugins/mancato.bar/widgets/Spacer.manifest.json`:   "description": "Configurable blank space",
+- `.config/omarchy/plugins/mancato.bar/widgets/Spacer.qml`: import QtQuick
+- `.config/omarchy/plugins/mancato.bar/widgets/SystemUpdate.manifest.json`:   "description": "Indicates available Omarchy updates",
+- `.config/omarchy/plugins/mancato.bar/widgets/SystemUpdate.qml`: import QtQuick
+- `.config/omarchy/plugins/mancato.bar/widgets/Tray.manifest.json`:   "description": "Status notifier items",
+- `.config/omarchy/plugins/mancato.bar/widgets/Tray.qml`: Bar widgets dragged into the tray section sit in the drawer after the
+- `.config/omarchy/plugins/mancato.bar/widgets/TrayModel.js`: A bar widget that stands in for an app's tray item takes its place: the app's
+- `.config/omarchy/plugins/mancato.bar/widgets/Workspaces.manifest.json`:   "description": "Workspace number indicators",
+- `.config/omarchy/plugins/mancato.bar/widgets/Workspaces.qml`: Every monitor has workspaces 1-10 of its own, which Hyprland numbers in a
 - `.config/omarchy/plugins/mancato.control-center/Panel.qml`: Cursor do teclado: 0-4 tiles (2 colunas, o 5o ocupa a linha), 5 volume, 6 brilho
 - `.config/omarchy/plugins/mancato.control-center/manifest.json`:   "description": "Quick toggles and sliders: Wi-Fi, Bluetooth, night light, power profile, volume, brightness",
 - `.config/omarchy/plugins/mancato.dock/AppGrid.qml`: Every app on one grid. Type to narrow it, arrows to move, Enter to launch.
@@ -52,3 +81,5 @@
 - `scripts/map.sh`: Gera docs/MAPA.md: uma linha por arquivo versionado com a primeira descrição/comentário.
 - `scripts/post-commit.hook`: Pós-commit: nunca bloqueia. Refresh do grafo em segundo plano, só AST, com lock (a camada semântica é sob demanda: STALE-SEMANTIC).
 - `scripts/pre-commit.hook`: Pré-commit rápido e sem LLM: regenera docs/MAPA.md e o inclui no mesmo commit.
+- `system/plymouth-pintura/build.sh`: Gera (como usuário, sem root) o tema Plymouth "pintura" em ~/.cache/plymouth-pintura:
+- `system/plymouth-pintura/install.sh`: Instala o tema gerado por build.sh. Rode num terminal SEU (pede sudo):  bash install.sh

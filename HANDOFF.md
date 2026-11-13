@@ -7,9 +7,10 @@ Histórico completo e fatos técnicos: [docs/HISTORICO.md](docs/HISTORICO.md). I
 **Sistema:** Omarchy 4.0, Hyprland 0.56.2 (config Lua), Quickshell, notebook eDP-1 espelhado em HDMI-A-1, foot. Usuário fala português, quer respostas curtas, decisões pequenas tomadas por você, mockup antes de mudança visual, commits pequenos sem atribuição de IA. Repositório **público**.
 
 ## Estado (13/11/2026)
-- Aplicado: animações, gestos, barra no topo com chips, tema por pintura (`painting-theme`), fastfetch, dock e painel de controle próprios, overview próprio (`SUPER+grave`), cantos 12 px, GTK/Nautilus seguem a pintura.
+- Aplicado: animações, gestos, barra em ilhas flutuantes (plugin `mancato.bar`) com chips, tema por pintura (`painting-theme`), fastfetch, dock e painel de controle próprios, overview próprio (`SUPER+grave`), cantos 12 px, GTK/Nautilus seguem a pintura.
 - Contorno ativo: layout padrão **dwindle**, `SUPER+L` desligado (crash do 0.56.2 ao desmontar a rolagem). Só vale após reiniciar a sessão.
 - Não verificado: ver [ideias/005-verificar-pendentes.md](ideias/005-verificar-pendentes.md).
+- Pendente do usuário: rodar `bash system/plymouth-pintura/build.sh && bash system/plymouth-pintura/install.sh` num terminal próprio e reiniciar.
 
 ## Armadilhas essenciais
 Vivem em [CLAUDE.md](CLAUDE.md), seção "Regras invioláveis" (fonte única; leia antes de qualquer mudança).

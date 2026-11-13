@@ -120,7 +120,8 @@
       "tray": []
     },
     "position": "top",
-    "transparent": true
+    "transparent": true,
+    "id": "mancato.bar"
   },
   "cloneSourceRestores": [
     "mancato.dock"
