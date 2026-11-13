@@ -312,10 +312,35 @@ def icon_and_accent(accent_hex):
     """Variante Yaru (pastas e icones) e acento do GTK mais proximos do acento da pintura."""
     r, g, b = (int(accent_hex[i:i + 2], 16) / 255 for i in (1, 3, 5))
     hue = colorsys.rgb_to_hls(r, g, b)[0] * 360
+    write_gtk_css()  # roda antes do `omarchy theme set`, que copia o gtk.css do tema
     for end, icons, gtk in ICON_BANDS:
         if hue < end:
             return f"Yaru-{icons}", gtk
     return "Yaru-red", "red"
+
+
+def write_gtk_css():
+    """gtk.css minimo (libadwaita e GTK3): so fundo e acento da pintura; apagar os dois arquivos desfaz."""
+    import tomllib
+    try:
+        with open(f"{THEME_DIR}/colors.toml", "rb") as f:
+            c = tomllib.load(f)
+        r, g, b = (int(c["accent"][i:i + 2], 16) for i in (1, 3, 5))
+        fg = c["darker_background"] if (0.299 * r + 0.587 * g + 0.114 * b) > 140 else "#ffffff"
+        defs = {"accent_bg_color": c["accent"], "accent_color": c["accent"], "accent_fg_color": fg,
+                "window_bg_color": c["background"], "view_bg_color": c["dark_background"],
+                "headerbar_bg_color": c["dark_background"], "sidebar_bg_color": c["dark_background"],
+                "card_bg_color": c["lighter_background"]}
+    except (OSError, KeyError, ValueError, tomllib.TOMLDecodeError):
+        return
+    css = "".join(f"@define-color {k} {v};\n" for k, v in defs.items())
+    css += ":root {\n" + "".join(f"  --{k.replace('_', '-')}: {v};\n" for k, v in defs.items()) + "}\n"
+    # gtk.css no tema: o omarchy copia para current/theme e o hook 10-sync-gtk4-css liga em ~/.config/gtk-4.0
+    with open(f"{THEME_DIR}/gtk.css", "w") as f:
+        f.write(css)
+    os.makedirs(f"{HOME}/.config/gtk-3.0", exist_ok=True)
+    with open(f"{HOME}/.config/gtk-3.0/gtk.css", "w") as f:
+        f.write(css)
 
 
 def apply_gnome_accent(gtk):
