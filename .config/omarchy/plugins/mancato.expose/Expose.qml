@@ -54,6 +54,13 @@ Item {
     return a.indexOf("0x") === 0 ? a : "0x" + a
   }
 
+  // Widgets (btop, cliamp...), other Omarchy system windows and anything on a
+  // special workspace stay out of the list, so future additions do not clutter it.
+  function isSystemWindow(cls, workspaceId) {
+    var c = String(cls || "").toLowerCase()
+    return workspaceId < 0 || c.indexOf("omarchy-") === 0 || c.indexOf("omarchy_") === 0
+  }
+
   function rebuild() {
     var mon = Hyprland.focusedMonitor
     root.originId = mon && mon.activeWorkspace ? mon.activeWorkspace.id : 1
@@ -63,6 +70,7 @@ Item {
       var t = tops[i]
       var o = t.lastIpcObject
       if (!t.workspace || !o || !o.mapped) continue
+      if (root.isSystemWindow(o.class, t.workspace.id)) continue
       out.push({ address: t.address, wayland: t.wayland, cls: o.class || "", title: o.title || o.class || "",
                  ws: t.workspace.id, focus: Number(o.focusHistoryID !== undefined ? o.focusHistoryID : 9999) })
     }
