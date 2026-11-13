@@ -10,7 +10,8 @@ Histórico completo e fatos técnicos: [docs/HISTORICO.md](docs/HISTORICO.md). I
 - Aplicado: animações, gestos, barra em ilhas flutuantes (plugin `mancato.bar`) com chips, tema por pintura (`painting-theme`), fastfetch, dock e painel de controle próprios, overview próprio (`SUPER+grave`), cantos 12 px, GTK/Nautilus seguem a pintura.
 - Contorno ativo: layout padrão **dwindle**, `SUPER+L` desligado (crash do 0.56.2 ao desmontar a rolagem). Só vale após reiniciar a sessão.
 - Não verificado: ver [ideias/005-verificar-pendentes.md](ideias/005-verificar-pendentes.md).
-- Pendente do usuário: rodar `bash system/plymouth-pintura/build.sh && bash system/plymouth-pintura/install.sh` num terminal próprio e reiniciar.
+- Plymouth Pintura instalado (foto do momento; atualizar = `system/plymouth-pintura/build.sh` + `install.sh` com sudo).
+- Próximo lote (011-016) proposto com mockups; aguardando escolha.
 
 ## Armadilhas essenciais
 Vivem em [CLAUDE.md](CLAUDE.md), seção "Regras invioláveis" (fonte única; leia antes de qualquer mudança).

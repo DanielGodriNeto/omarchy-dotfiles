@@ -10,7 +10,13 @@ Regra: toda ideia nova do usuário vira um arquivo em `ideias/NNN-slug.md` e uma
 | [ideias.md como log vivo das ideias](ideias/004-ideias-log.md) | Feito (este arquivo) |
 | [Conferir o que não foi verificado](ideias/005-verificar-pendentes.md) | Em andamento (checklist manual com o usuário) |
 | [Barra em pílula flutuante](ideias/006-pilula-flutuante.md) | Feito (ilhas, plugin mancato.bar) |
-| [Tela de login/Plymouth com a pintura atual](ideias/007-login-plymouth.md) | Em andamento (tema gerado; falta instalar com sudo) |
+| [Tela de login/Plymouth com a pintura atual](ideias/007-login-plymouth.md) | Feito (tema Pintura instalado; atualizar exige build.sh + install.sh com sudo) |
 | [Voltar ao layout em rolagem](ideias/008-voltar-ao-scrolling.md) | Bloqueado (esperando Hyprland 0.57+) |
 | [Dock restilizada, apps fixados, Não perturbar, overview próprio](ideias/009-dock-overview-dnd.md) | Feito |
 | [Subagente crítico (escritor, crítico, melhoria)](ideias/010-critico.md) | Em andamento |
+| [Legenda da pintura atual](ideias/011-legenda-pintura.md) | Pendente |
+| [Central de notificações com histórico](ideias/012-central-notificacoes.md) | Pendente |
+| [Relógio no desktop vazio](ideias/013-relogio-desktop.md) | Pendente |
+| [Modo foco](ideias/014-modo-foco.md) | Pendente |
+| [Gestos de 3 dedos para overview e peek](ideias/015-gestos-3-dedos.md) | Pendente |
+| [Conferir vinheta do wallpaper com as pinturas](ideias/016-vinheta-wallpaper.md) | Pendente |
