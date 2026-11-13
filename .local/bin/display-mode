@@ -1,0 +1,54 @@
+#!/bin/bash
+# Como a tela externa (HDMI/TV) se comporta com a do notebook.
+#   display-mode            mostra o modo gravado (mirror ou extend)
+#   display-mode mirror     espelha o notebook na externa
+#   display-mode extend     a externa vira uma segunda tela (estende)
+#   display-mode external   usa so a externa e apaga a tela do notebook
+# O modo fica em ~/.config/omarchy/display-mode, lido por hypr/monitors.lua.
+# "external" so vale com uma tela externa ativa; o notebook e religado por
+# `mirror`, `extend` ou pela recuperacao automatica do Omarchy.
+set -eu
+
+STATE="${XDG_CONFIG_HOME:-$HOME/.config}/omarchy/display-mode"
+
+current() {
+  local value
+  value=$(head -n1 "$STATE" 2>/dev/null || true)
+  [[ $value == extend ]] && echo extend || echo mirror
+}
+
+save() {
+  mkdir -p "$(dirname "$STATE")"
+  printf '%s\n' "$1" >"$STATE"
+}
+
+apply() {
+  hyprctl reload config-only >/dev/null
+}
+
+case "${1:-}" in
+  "")
+    current
+    ;;
+  mirror | extend)
+    save "$1"
+    # Se o notebook estava desligado, volta antes de reorganizar as telas.
+    omarchy-hyprland-monitor-internal on
+    apply
+    ;;
+  external)
+    # So vale com uma tela fisica: saidas virtuais (headless) nao tem tamanho
+    # fisico, e apagar o notebook com so uma delas deixaria o usuario sem imagem.
+    if ! hyprctl monitors -j | jq -e '[.[] | select((.name | test("^(eDP|LVDS|DSI)-") | not) and .physicalWidth > 0)] | length > 0' >/dev/null; then
+      omarchy-notification-send -g 󰍹 "Nenhuma tela externa fisica ligada"
+      exit 1
+    fi
+    save extend
+    apply
+    omarchy-hyprland-monitor-internal off
+    ;;
+  *)
+    echo "uso: display-mode [mirror|extend|external]" >&2
+    exit 1
+    ;;
+esac
