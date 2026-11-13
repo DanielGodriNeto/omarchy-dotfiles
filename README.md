@@ -17,6 +17,8 @@ Paths mirror `$HOME` — copy the relevant files into place, or symlink them in.
 - **`.config/omarchy/plugins/mancato.control-center/`** + **`.local/bin/control-center-state`** — painel de controle na barra (Wi-Fi, Bluetooth, luz noturna, energia, volume, brilho), feito com o kit `qs.Ui` do shell.
 - **`.local/bin/fastfetch-fit`** — fastfetch adaptativo ao tamanho do terminal; as cores seguem o acento do tema ativo.
 - **`.config/omarchy/themed/shell.toml.tpl`** — override do template de estilo do shell (menus, popups, notificações), derivado do template do Omarchy (MIT); segue as cores do tema ativo.
+- **`.config/omarchy/plugins/mancato.bar/`** — clone do plugin `omarchy.bar` do Omarchy com a barra em "ilhas" (fundo transparente, cada grupo de widgets numa ilha com margem). Código derivado do Omarchy (MIT, © David Heinemeier Hansson); o clone não recebe as atualizações da barra original. Para voltar ao padrão, remova `"id"` de `bar` no `shell.json` e rode `omarchy restart shell`.
+- **`system/plymouth-pintura/`** — tema de boot (Plymouth) com a pintura atual escurecida e o acento do tema. `build.sh` gera em `~/.cache` sem root; `install.sh` precisa de `sudo` e deve ser rodado num terminal próprio. É uma foto da pintura do momento do `build.sh`, não troca sozinho.
 - **`.config/starship.toml`** — prompt re-themed to match the active palette.
 - **`.local/bin/omarchy-toggle-widgets`** — focuses/unfocuses the dedicated widget workspace.
 - **`.local/bin/omarchy-cliamp-toggle-provider`** / **`omarchy-widget-cliamp-launch`** — switch the cliamp desktop widget between Spotify and a local radio playlist.
