@@ -189,7 +189,16 @@ O usuário pediu "coloca na tela de temas ctrl+shift+super+espaço". Esse atalho
 - Screenshot para conferir visual: `grim -o eDP-1 arquivo.png`.
 - Backups novos: `~/.config/omarchy/shell.json.bak3.*`, `~/.local/state/painting-theme/painting-theme.bak6` e `.bak7`, `~/.local/bin/fastfetch-fit.bak.*`.
 
+## Verificado na tela em 13/11 (sessão de conferência)
+
+- **Painel de controle:** abre ao lado do relógio (está na seção `centerEnd` do `shell.json`, não na direita), com tiles de Wi-Fi, Bluetooth, luz noturna e energia e sliders de volume e brilho, nas cores da pintura. Abrir por IPC (`omarchy-shell shell summon mancato.control-center`) funciona. Os cliques nos tiles e sliders **não** foram testados.
+- **Dock:** aparece ao levar o ponteiro à borda inferior (auto-ocultar funciona), mostrando o botão de apps, o terminal e o Claude.
+- **Menu "Pintura do tema":** os 7 itens abrem. Os nomes longos eram cortados e escondiam o ✓ do que está ligado; foram encurtados (Automático, Ao ligar o PC, Ao acordar, Por horário), e agora o ✓ aparece.
+- **Modo por horário:** a lógica foi conferida offline para 5 horas do dia (noite 0,16–0,36, entardecer 0,36–0,46, tarde 0,46–0,52, manhã 0,52–0,78 de luminosidade; ~46 pinturas por faixa). Só a manhã tinha sido vista numa troca real.
+- **Carrossel `Ctrl+Shift+Super+Espaço`:** o tema Pintura aparece em foco com a pintura atual como miniatura.
+
 ## Ainda não verificado (13/11)
 
-- Clicar nos tiles/sliders do painel e abri-lo pelo botão da barra; auto-ocultar e arrastar apps na dock; pastas no Nautilus com a variante Yaru; item "Pinturas por horário" no menu; a faixa seguinte do modo por horário (só vi a manhã).
-- Volume no painel apareceu em 0 (o `wpctl` reportou 0,00).
+- Cliques nos tiles e sliders do painel; arrastar apps na dock; pastas do Nautilus com a variante Yaru nova; troca real nas faixas tarde, entardecer e noite.
+- Volume no painel em 0: é real (`wpctl` reporta 0,00), não um erro.
+- **Possível crash do Hyprland 0.56.2 ao alternar o layout do workspace** (`SUPER+L`): o usuário trata disso em outra sessão (a atualização para o 0.57 ainda não chegou ao repositório do Arch). Como o layout em rolagem é o padrão, evitar `SUPER+L` até resolver. Não foi reproduzido por mim.
