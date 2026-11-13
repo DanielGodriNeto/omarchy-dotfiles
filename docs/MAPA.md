@@ -42,11 +42,30 @@
 - `.config/omarchy/plugins/mancato.bar/widgets/Workspaces.qml`: Every monitor has workspaces 1-10 of its own, which Hyprland numbers in a
 - `.config/omarchy/plugins/mancato.control-center/Panel.qml`: Cursor do teclado: 0-4 tiles (2 colunas, o 5o ocupa a linha), 5 volume, 6 brilho
 - `.config/omarchy/plugins/mancato.control-center/manifest.json`:   "description": "Quick toggles and sliders: Wi-Fi, Bluetooth, night light, power profile, volume, brightness",
+- `.config/omarchy/plugins/mancato.corners/Corners.qml`: Two tiny always-there layer surfaces in the top corners. Resting the pointer
+- `.config/omarchy/plugins/mancato.corners/manifest.json`:   "description": "Top-left corner opens the workspaces overview, top-right opens all windows",
+- `.config/omarchy/plugins/mancato.desktop/Desktop.qml`: A large clock in the upper third and the current painting's caption in the
+- `.config/omarchy/plugins/mancato.desktop/manifest.json`:   "description": "Clock and painting caption drawn on the desktop, under the windows",
 - `.config/omarchy/plugins/mancato.dock/AppGrid.qml`: Every app on one grid. Type to narrow it, arrows to move, Enter to launch.
 - `.config/omarchy/plugins/mancato.dock/Dock.qml`: An app dock that shows on floating workspaces. A floating workspace has no
 - `.config/omarchy/plugins/mancato.dock/DockModel.js`: The dock's state that does not need Quickshell: where it sits, which apps it
 - `.config/omarchy/plugins/mancato.dock/DockWindow.qml`: One screen's dock. It stays mapped and only hides its contents, so switching
 - `.config/omarchy/plugins/mancato.dock/manifest.json`:   "description": "App dock shown on floating workspaces",
+- `.config/omarchy/plugins/mancato.expose/Expose.qml`: Every open window as a 16:9 card. Click brings it to the current workspace,
+- `.config/omarchy/plugins/mancato.expose/manifest.json`:   "description": "Every open window as a 16:9 card: close it or bring it to the current workspace",
+- `.config/omarchy/plugins/mancato.notifcenter/NotifCenter.qml`: Right-hand sheet with the notification history (history.json, kept by the
+- `.config/omarchy/plugins/mancato.notifcenter/manifest.json`:   "description": "Scrollable history of every notification kept by the notification service",
+- `.config/omarchy/plugins/mancato.notifications/DeedButton.qml`: One thing a notification can do: a segment of the card's button bar, its
+- `.config/omarchy/plugins/mancato.notifications/Delivery.js`: Whether a notification reaches the screen, and where the deck sits. Pure
+- `.config/omarchy/plugins/mancato.notifications/Detect.js`: What a notification offers: verification codes and links. Every detector guesses at someone else's prose, so a false positive
+- `.config/omarchy/plugins/mancato.notifications/Icons.js`: The names a card's icon may go by, best first. Toast.qml looks them up in
+- `.config/omarchy/plugins/mancato.notifications/Layout.js`: Where every card sits: rows in, placements out. Cards are placed absolutely,
+- `.config/omarchy/plugins/mancato.notifications/Markup.js`: Reading what senders put in a notification: where it really came from, and
+- `.config/omarchy/plugins/mancato.notifications/Security.js`: The sole external-navigation policy. QML JS has no WHATWG URL constructor;
+- `.config/omarchy/plugins/mancato.notifications/Service.qml`: The notification daemon: Quickshell's NotificationServer owns
+- `.config/omarchy/plugins/mancato.notifications/Store.js`: Pure functions over notifications: what to keep from one, how to write it
+- `.config/omarchy/plugins/mancato.notifications/Toast.qml`: One notification card. Layout.js decides where it goes and the scene animates
+- `.config/omarchy/plugins/mancato.notifications/manifest.json`:   "description": "Notification daemon: grouped stacks, inline actions, Do Not Disturb, and history",
 - `.config/omarchy/plugins/mancato.overview/Overview.qml`: Close first, then switch: closing the overlay hands keyboard focus back
 - `.config/omarchy/plugins/mancato.overview/manifest.json`:   "description": "Full-screen grid of workspaces with their windows",
 - `.config/omarchy/shell.json`:   "bar": {
@@ -57,6 +76,7 @@
 - `.local/bin/control-center-state`: Estado dos controles rapidos em JSON (usado pelo plugin mancato.control-center).
 - `.local/bin/fastfetch-art`: """Pinta o logo do fastfetch com uma pintura de natureza no tom do tema Omarchy (sorteada dentro de uma faixa de cores)."""
 - `.local/bin/fastfetch-fit`: """fastfetch adaptativo: ajusta imagem e secoes ao tamanho do terminal."""
+- `.local/bin/focus-mode`: Modo foco: esconde a barra e esmaece as janelas inativas. Rode de novo para sair.
 - `.local/bin/omarchy-ac-idle-watcher`: Keeps Omarchy's idle/lock "stay awake" state in sync with AC power presence.
 - `.local/bin/omarchy-cliamp-toggle-provider`: omarchy:summary=Switch the cliamp desktop widget's music source between Spotify and local radio
 - `.local/bin/omarchy-peek-desktop`: Toggle "peek at desktop": switch every monitor's view to an unused,

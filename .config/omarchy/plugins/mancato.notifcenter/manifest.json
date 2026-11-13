@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "mancato.notifcenter",
+  "name": "Notification center",
+  "version": "1.0.0",
+  "author": "mancato",
+  "description": "Scrollable history of every notification kept by the notification service",
+  "kinds": ["overlay"],
+  "keepLoaded": true,
+  "entryPoints": { "overlay": "NotifCenter.qml" }
+}

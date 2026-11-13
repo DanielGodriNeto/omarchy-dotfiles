@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "mancato.expose",
+  "name": "All windows",
+  "version": "1.0.0",
+  "author": "mancato",
+  "description": "Every open window as a 16:9 card: close it or bring it to the current workspace",
+  "kinds": ["overlay"],
+  "keepLoaded": true,
+  "entryPoints": { "overlay": "Expose.qml" }
+}

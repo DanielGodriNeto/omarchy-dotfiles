@@ -6,7 +6,7 @@
           "format": "dddd HH:mm",
           "formatAlt": "d MMMM 'W'ww yyyy",
           "id": "omarchy.clock",
-          "verticalFormat": "HH\n—\nmm"
+          "verticalFormat": "HH\n\u2014\nmm"
         }
       ],
       "centerBegin": [
@@ -16,6 +16,7 @@
       ],
       "centerEnd": [
         {
+          "id": "omarchy.elsewhen",
           "cities": [
             {
               "name": "Sao Paulo",
@@ -37,8 +38,7 @@
               "name": "Los Angeles",
               "zone": "America/Los_Angeles"
             }
-          ],
-          "id": "omarchy.elsewhen"
+          ]
         },
         {
           "id": "omarchy.weather"
@@ -124,10 +124,12 @@
     "id": "mancato.bar"
   },
   "cloneSourceRestores": [
-    "mancato.dock"
+    "mancato.dock",
+    "mancato.notifications"
   ],
   "disabledPlugins": [
-    "omarchy.dock"
+    "omarchy.dock",
+    "omarchy.notifications"
   ],
   "dock": {
     "autohide": true,
@@ -155,6 +157,21 @@
     },
     {
       "id": "mancato.overview"
+    },
+    {
+      "id": "mancato.notifications"
+    },
+    {
+      "id": "mancato.expose"
+    },
+    {
+      "id": "mancato.corners"
+    },
+    {
+      "id": "mancato.notifcenter"
+    },
+    {
+      "id": "mancato.desktop"
     }
   ],
   "version": 1

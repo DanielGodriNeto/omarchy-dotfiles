@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "mancato.desktop",
+  "name": "Desktop widgets",
+  "version": "1.0.0",
+  "author": "mancato",
+  "description": "Clock and painting caption drawn on the desktop, under the windows",
+  "kinds": ["service"],
+  "entryPoints": { "service": "Desktop.qml" }
+}

@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "mancato.corners",
+  "name": "Hot corners",
+  "version": "1.0.0",
+  "author": "mancato",
+  "description": "Top-left corner opens the workspaces overview, top-right opens all windows",
+  "kinds": ["service"],
+  "entryPoints": { "service": "Corners.qml" }
+}

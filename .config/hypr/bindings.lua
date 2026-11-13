@@ -66,3 +66,6 @@ end
 o.rebind("SUPER + L", "Lock system", "omarchy-system-lock")
 hl.unbind("SUPER + ALT + L")
 o.bind("SUPER + grave", "Workspaces overview", { panel = "mancato.overview" })
+o.bind("SUPER + SHIFT + grave", "All windows", { panel = "mancato.expose" })
+o.bind("SUPER + ALT + N", "Notification history", { panel = "mancato.notifcenter" })
+o.bind("SUPER + ALT + Z", "Focus mode", "focus-mode")

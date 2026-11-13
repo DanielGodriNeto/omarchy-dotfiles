@@ -1,0 +1,15 @@
+#!/bin/bash
+# Modo foco: esconde a barra e esmaece as janelas inativas. Rode de novo para sair.
+state="$HOME/.local/state/focus-mode"
+bar_flag="$HOME/.local/state/omarchy/toggles/bar-off"
+dim() { hyprctl dispatch "hl.config({ decoration = { dim_strength = $1 } })" >/dev/null 2>&1; }
+
+if [[ -f $state ]]; then
+  rm -f "$state"
+  [[ -f $bar_flag ]] && omarchy-toggle-bar off
+  dim 0.15
+else
+  touch "$state"
+  [[ -f $bar_flag ]] || omarchy-toggle-bar on
+  dim 0.55
+fi
