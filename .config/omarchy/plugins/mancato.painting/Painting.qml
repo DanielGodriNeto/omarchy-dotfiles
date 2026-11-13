@@ -20,6 +20,7 @@ Item {
   property string artist: ""
   property string genre: ""
   property bool byTime: false
+  property bool clockOn: true       // big clock on the empty desktop (desktop-clock)
   property int myRating: 0          // 1, -1 or 0
   property string stage: "idle"     // idle | like | dislike
   property var picked: []           // reason ids chosen in the current stage
@@ -55,7 +56,10 @@ Item {
     else root.open("{}")
   }
 
-  function refresh() { if (!statusProc.running) statusProc.running = true }
+  function refresh() {
+    if (!statusProc.running) statusProc.running = true
+    if (!clockProc.running) clockProc.running = true
+  }
 
   function cleanTitle(raw) {
     var t = String(raw || "").replace(/\.(jpe?g|png|webp)$/i, "").replace(/_/g, " ").trim()
@@ -81,6 +85,21 @@ Item {
     rateProc.command = args
     rateProc.after = verb === "dislike"
     rateProc.running = true
+  }
+
+  Process {
+    id: clockProc
+    command: ["desktop-clock"]
+    stdout: StdioCollector {
+      waitForEnd: true
+      onStreamFinished: root.clockOn = text.trim() !== "off"
+    }
+  }
+
+  Process {
+    id: clockToggleProc
+    command: ["desktop-clock", "toggle"]
+    onRunningChanged: if (!running) root.refresh()
   }
 
   Process {
@@ -293,6 +312,11 @@ Item {
           Chip {
             label: "Escolher…"
             onClicked: { chooseProc.running = true; root.dismiss() }
+          }
+          Chip {
+            label: "Relógio no desktop"
+            on: root.clockOn
+            onClicked: if (!clockToggleProc.running) clockToggleProc.running = true
           }
           Chip {
             label: "Por horário"

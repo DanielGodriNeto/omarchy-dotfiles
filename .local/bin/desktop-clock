@@ -1,0 +1,31 @@
+#!/bin/bash
+# Liga ou desliga o relogio grande do desktop vazio (a legenda da pintura fica).
+#   desktop-clock           mostra o estado (on ou off)
+#   desktop-clock on|off    define
+#   desktop-clock toggle    alterna
+# O estado fica em ~/.config/omarchy/desktop-clock, observado pelo plugin
+# mancato.desktop; sem o arquivo o relogio aparece.
+set -eu
+
+STATE="${XDG_CONFIG_HOME:-$HOME/.config}/omarchy/desktop-clock"
+
+current() {
+  local value
+  value=$(head -n1 "$STATE" 2>/dev/null || true)
+  [[ $value == off ]] && echo off || echo on
+}
+
+save() {
+  mkdir -p "$(dirname "$STATE")"
+  printf '%s\n' "$1" >"$STATE"
+}
+
+case "${1:-}" in
+  "") current ;;
+  on | off) save "$1" ;;
+  toggle) [[ $(current) == on ]] && save off || save on ;;
+  *)
+    echo "uso: desktop-clock [on|off|toggle]" >&2
+    exit 1
+    ;;
+esac

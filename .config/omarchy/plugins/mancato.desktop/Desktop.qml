@@ -16,6 +16,8 @@ Scope {
   property var manifest: null
 
   property string caption: ""
+  // The big clock can be switched off (desktop-clock); the caption stays.
+  property bool clockOn: true
   property date now: new Date()
 
   readonly property string statePath: Quickshell.env("HOME") + "/.local/state/painting-theme/state.json"
@@ -32,6 +34,16 @@ Scope {
     running: true
     repeat: true
     onTriggered: root.now = new Date()
+  }
+
+  FileView {
+    id: clockFile
+    path: Quickshell.env("HOME") + "/.config/omarchy/desktop-clock"
+    watchChanges: true
+    printErrors: false
+    onFileChanged: reload()
+    onLoaded: root.clockOn = text().trim() !== "off"
+    onLoadFailed: root.clockOn = true
   }
 
   FileView {
@@ -76,6 +88,7 @@ Scope {
       visible: shown > 0.01
 
       Rectangle {
+        visible: root.clockOn
         anchors.horizontalCenter: parent.horizontalCenter
         y: parent.height * 0.2
         width: clockColumn.implicitWidth + 64
@@ -87,6 +100,7 @@ Scope {
 
       Column {
         id: clockColumn
+        visible: root.clockOn
         opacity: win.shown
         anchors.horizontalCenter: parent.horizontalCenter
         y: parent.height * 0.2 + 18

@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Copies the rendered Vivaldi CSS mod (vivaldi.css, from themed/vivaldi.css.tpl)
+# to the folder Vivaldi is told to load UI modifications from. Vivaldi reads it
+# at start, so colors show after the next restart of the browser.
+
+THEME_FILE="$HOME/.local/state/omarchy/current/theme/vivaldi.css"
+DEST_DIR="$HOME/.config/vivaldi-mods"
+
+[[ -f $THEME_FILE ]] || exit 0
+command -v vivaldi >/dev/null || exit 0
+
+mkdir -p "$DEST_DIR"
+cp -f "$THEME_FILE" "$DEST_DIR/omarchy.css"
