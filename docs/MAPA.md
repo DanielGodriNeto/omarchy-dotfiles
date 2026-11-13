@@ -68,6 +68,8 @@
 - `.config/omarchy/plugins/mancato.notifications/manifest.json`:   "description": "Notification daemon: grouped stacks, inline actions, Do Not Disturb, and history",
 - `.config/omarchy/plugins/mancato.overview/Overview.qml`: Close first, then switch: closing the overlay hands keyboard focus back
 - `.config/omarchy/plugins/mancato.overview/manifest.json`:   "description": "Full-screen grid of workspaces with their windows",
+- `.config/omarchy/plugins/mancato.painting/Painting.qml`: Painting panel: the current painting, like / dislike with the reasons that
+- `.config/omarchy/plugins/mancato.painting/manifest.json`:   "description": "Current painting with like/dislike feedback, change now and time-of-day switch",
 - `.config/omarchy/shell.json`:   "bar": {
 - `.config/omarchy/themed/shell.toml.tpl`: OVERRIDE of default/themed/shell.toml.tpl (calm, macOS/Spotlight-like).
 - `.config/starship.toml`: Uses the terminal's ANSI colors (red/green/yellow/blue/magenta/cyan), which
@@ -87,6 +89,7 @@
 - `.local/bin/omarchy-wallpaper-effect-watch`: omarchy:summary=Watch for wallpaper/theme changes and re-apply the vignette effect
 - `.local/bin/omarchy-widget-cliamp-launch`: omarchy:summary=Launch the cliamp desktop widget using the last-selected music source (Spotify or radio)
 - `.local/bin/painting-theme`: """Tema Omarchy gerado a partir de uma pintura: wallpaper + paleta do sistema.
+- `.local/bin/painting-theme-discover`: """Descobre pinturas paisagisticas (JPEG, >=1500 px, horizontal; ignora titulos ja no index, inclusive os excluidos em exclude.txt, que sao 
 - `.local/bin/painting-theme-fetch`: Baixa as miniaturas (640 px) do acervo de pinturas listadas em ~/.local/share/fastfetch-art/index.jsonl.
 - `.local/share/painting-theme/shim/omarchy-restart-hyprctl`: Usado so pelo painting-theme durante o peek desktop (Super+D): adia o reload do Hyprland, que
 - `CLAUDE.md`: omarchy-dotfiles: regras de trabalho

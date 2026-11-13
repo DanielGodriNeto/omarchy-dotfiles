@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "mancato.painting",
+  "name": "Painting panel",
+  "version": "1.0.0",
+  "author": "mancato",
+  "description": "Current painting with like/dislike feedback, change now and time-of-day switch",
+  "kinds": ["overlay"],
+  "keepLoaded": true,
+  "entryPoints": { "overlay": "Painting.qml" }
+}

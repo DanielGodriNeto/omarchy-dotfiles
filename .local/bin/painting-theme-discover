@@ -1,0 +1,173 @@
+#!/usr/bin/env python3
+"""Descobre pinturas paisagisticas (JPEG, >=1500 px, horizontal; ignora titulos ja no index, inclusive os excluidos em exclude.txt, que sao entradas do index) em categorias do Wikimedia Commons
+e acrescenta ao ~/.local/share/fastfetch-art/index.jsonl. Depois rode painting-theme-fetch.
+
+Uso: painting-theme-discover [--depth 1] [--max 60] [--dry-run] [Categoria ...]
+Respeita 2,5 s entre QUAISQUER duas chamadas a API, com backoff em 429/5xx.
+"""
+import argparse
+import json
+import os
+import re
+import sys
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
+
+API = "https://commons.wikimedia.org/w/api.php"
+UA = "painting-theme-personal/1.0"
+DIR = os.path.expanduser("~/.local/share/fastfetch-art")
+INDEX = os.path.join(DIR, "index.jsonl")
+MIN_WIDTH = 1500
+MIN_ASPECT = 1.3
+GAP = 2.5
+DEFAULTS = [
+    "Paintings by Vincent van Gogh",
+    "Landscape paintings by Albert Bierstadt",
+    "Paintings by Thomas Moran",
+]
+
+_last_call = 0.0
+
+
+def api(params):
+    """Chamada unica a API, com intervalo minimo e backoff."""
+    global _last_call
+    query = urllib.parse.urlencode({**params, "format": "json", "formatversion": "2"})
+    req = urllib.request.Request(f"{API}?{query}", headers={"User-Agent": UA})
+    delay = 10.0
+    for attempt in range(6):
+        wait = GAP - (time.monotonic() - _last_call)
+        if wait > 0:
+            time.sleep(wait)
+        _last_call = time.monotonic()
+        try:
+            with urllib.request.urlopen(req, timeout=40) as r:
+                return json.load(r)
+        except urllib.error.HTTPError as e:
+            if e.code != 429 and e.code < 500:
+                raise
+            retry = e.headers.get("Retry-After", "")
+            time.sleep(float(retry) if retry.isdigit() else delay)
+        except (urllib.error.URLError, TimeoutError):
+            time.sleep(delay)
+        delay = min(delay * 2, 120)
+    raise RuntimeError("API indisponivel apos varias tentativas")
+
+
+def category_exists(name):
+    data = api({"action": "query", "titles": f"Category:{name}"})
+    pages = data.get("query", {}).get("pages", [])
+    return bool(pages) and not pages[0].get("missing")
+
+
+def members(name, cmtype):
+    """Gera membros da categoria (paginado)."""
+    cont = {}
+    while True:
+        params = {"action": "query", "list": "categorymembers", "cmtitle": f"Category:{name}",
+                  "cmtype": cmtype, "cmlimit": "500", **cont}
+        data = api(params)
+        yield from data.get("query", {}).get("categorymembers", [])
+        if "continue" not in data:
+            return
+        cont = data["continue"]
+
+
+def file_infos(name):
+    """Gera (titulo, info) para arquivos da categoria, 50 por chamada via generator."""
+    cont = {}
+    while True:
+        params = {"action": "query", "generator": "categorymembers", "gcmtitle": f"Category:{name}",
+                  "gcmtype": "file", "gcmlimit": "50", "prop": "imageinfo",
+                  "iiprop": "url|size|mime", "iiurlwidth": "960", **cont}
+        data = api(params)
+        for page in data.get("query", {}).get("pages", []):
+            infos = page.get("imageinfo")
+            if infos:
+                yield page["title"], infos[0]
+        if "continue" not in data:
+            return
+        cont = data["continue"]
+
+
+def is_good(info):
+    w, h = info.get("width", 0), info.get("height", 0)
+    return (info.get("mime") == "image/jpeg" and w >= MIN_WIDTH and h > 0
+            and w / h >= MIN_ASPECT and info.get("thumburl"))
+
+
+def load_state():
+    titles, max_n = set(), 0
+    with open(INDEX, encoding="utf-8") as fh:
+        for line in fh:
+            if not line.strip():
+                continue
+            rec = json.loads(line)
+            titles.add(rec["t"])
+            m = re.match(r"(\d+)\.jpg$", rec["f"])
+            max_n = max(max_n, int(m.group(1)) if m else 0)
+    return titles, max_n
+
+
+def backup_once(state):
+    if state["backed_up"]:
+        return
+    path = f"{INDEX}.bak.{int(time.time())}"
+    with open(INDEX, "rb") as src, open(path, "wb") as dst:
+        dst.write(src.read())
+    state["backed_up"] = True
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("categories", nargs="*")
+    ap.add_argument("--depth", type=int, default=0, choices=[0, 1])
+    ap.add_argument("--max", type=int, default=60)
+    ap.add_argument("--dry-run", action="store_true")
+    args = ap.parse_args()
+
+    titles, max_n = load_state()
+    state = {"n": max_n, "backed_up": False}
+    cats = args.categories or DEFAULTS
+    for top in cats:
+        if not category_exists(top):
+            print(f"[skip] categoria inexistente: {top}", file=sys.stderr)
+            continue
+        targets = [top]
+        if args.depth >= 1:
+            targets += [m["title"].removeprefix("Category:") for m in members(top, "subcat")]
+        total = 0
+        for cat in targets:
+            if total >= args.max:
+                break
+            # 'c' fica com o nome da categoria pedida, e o teto vale por categoria pedida
+            args_left = argparse.Namespace(max=args.max - total, dry_run=args.dry_run)
+            n = process(cat, top, args_left, titles, state)
+            total += n
+        print(f"{top}: +{total}")
+    print(f"ultimo f: {state['n']:03d}.jpg")
+
+
+def process(cat, label, args, titles, state):
+    added = 0
+    for title, info in file_infos(cat):
+        if added >= args.max:
+            break
+        if title in titles or not is_good(info):
+            continue
+        state["n"] += 1
+        fname = f"{state['n']:03d}.jpg"
+        rec = {"t": title, "u": info["thumburl"], "c": label, "f": fname}
+        if not args.dry_run:
+            backup_once(state)
+            with open(INDEX, "a", encoding="utf-8") as fh:
+                fh.write(json.dumps(rec, ensure_ascii=False, separators=(",", ":")) + "\n")
+        titles.add(title)
+        added += 1
+    return added
+
+
+if __name__ == "__main__":
+    main()

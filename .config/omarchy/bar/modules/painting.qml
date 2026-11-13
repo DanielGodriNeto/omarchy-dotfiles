@@ -1,9 +1,10 @@
 import QtQuick
+import Quickshell
 import Quickshell.Io
 
 // Custom bar module (bar.layout entry: { "id": "painting", "type": "qml" }).
-// Botao do tema por pintura: clique esquerdo abre o menu "Pintura do tema" do
-// Omarchy, clique direito troca a pintura (wallpaper + cores do sistema).
+// Botao do tema por pintura: clique esquerdo abre o painel da pintura (gostei/não gostei,
+// trocar, por horário), clique direito troca a pintura (wallpaper + cores do sistema).
 // Passar o mouse mostra o nome da pintura atual. Logica em ~/.local/bin/painting-theme.
 Item {
   id: root
@@ -74,7 +75,7 @@ Item {
       if (mouse.button === Qt.RightButton) {
         if (!nextProc.running) nextProc.running = true
       } else if (root.bar) {
-        root.bar.run("omarchy menu summon pintura")
+        Quickshell.execDetached(["omarchy-shell", "-q", "shell", "toggle", "mancato.painting", "{}"])
       }
     }
   }

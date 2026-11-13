@@ -8,6 +8,9 @@ Uso:
   painting-theme config [chave valor]
   painting-theme daemon          troca no login, ao acordar e por tempo
   painting-theme lum             calcula a luminosidade das pinturas (modo por horario)
+  painting-theme features        calcula as cores dominantes das pinturas (base do gosto)
+  painting-theme like|dislike [motivos]  avalia a pintura atual (motivos: cores genero estilo autor qualidade imagem)
+  painting-theme taste           resume o gosto aprendido
 """
 import colorsys, fcntl, functools, json, os, random, shutil, subprocess, sys, time, urllib.parse, urllib.request
 
@@ -150,6 +153,8 @@ def make_wallpaper(src, dest):
 
 META = f"{ART}/meta.json"
 LUM = f"{ART}/lum.json"
+FEATURES = f"{ART}/features.json"
+TASTE = f"{CFG_DIR}/taste.json"
 MIN_ASPECT = 1.25   # mais estreito que isso cortaria demais ao preencher a tela
 CACHE_DIR = f"{HOME}/.cache/painting-theme"
 
@@ -419,6 +424,129 @@ def band_pool(good, hour=None):
     return ranked[n * q // 4:n * (q + 1) // 4]
 
 
+
+# ---------- gosto (feedback) ----------
+# Cada avaliacao ensina so as dimensoes marcadas. "imagem" (defeito da foto) tira a pintura sem ensinar nada.
+DIMS = {"cores": ("hue", "lum"), "genero": ("genre",), "estilo": ("cat",), "autor": ("artist",), "qualidade": ("q",)}
+EXPLORE = 0.3     # fracao dos sorteios que busca o desconhecido
+GENRES = [("sunset", ("sunset", "sunrise", "dusk")), ("mountain", ("mountain", "alps", "alpine", "peak")),
+          ("desert", ("desert",)), ("western", ("western", "cowboy", "outlaw", "frontier", "remington", "russell", "old west")),
+          ("winter", ("winter", "snow")), ("sea", ("sea", "marine", "ocean", "coast", "ship")),
+          ("water", ("lilies", "river", "lake", "waterfall")), ("forest", ("forest", "wood", "tree")),
+          ("portrait", ("portrait",)), ("stilllife", ("still life", "still-life", "flowers", "sunflower"))]
+
+
+def item_features(it, feats, meta):
+    """Caracteristicas de uma pintura: autor, genero, categoria, cor, luminosidade e qualidade."""
+    import re
+    cat = it.get("c", "")
+    out = {"cat": cat or None}
+    m = re.search(r" by (.+)$", cat)
+    out["artist"] = m.group(1).strip() if m else None
+    low = cat.lower()
+    out["genre"] = next((g for g, keys in GENRES if any(k in low for k in keys)), "landscape")
+    ft = feats.get(it["f"], {})
+    out["hue"] = ft.get("hue")
+    out["lum"] = ft.get("lum")
+    w = meta.get(it["f"], {}).get("w", 0)
+    out["q"] = "hi" if w >= 3000 else "lo" if w else None
+    return {k: v for k, v in out.items() if v is not None}
+
+
+def cmd_features():
+    """Matiz dominante (bins de 30 graus; 'gray' se pouca cor) e luminosidade (0-3) de cada pintura."""
+    feats = load_json(FEATURES, {}) if os.path.exists(FEATURES) else {}
+    lum = load_json(LUM, {}) if os.path.exists(LUM) else {}
+    for it in items():
+        f = it["f"]
+        if f in feats:
+            continue
+        try:
+            clusters = hue_clusters(sample_pixels(f"{ART}/{f}"))
+        except Exception:
+            continue
+        hue = int(clusters[0][1] // 30) if clusters else "gray"
+        feats[f] = {"hue": str(hue), "lum": str(min(3, int(lum.get(f, 0.4) * 4)))}
+    save_json(FEATURES, feats)
+    print(f"{len(feats)} pinturas com cores")
+
+
+def taste_model():
+    """Pesos por caracteristica, recalculados das avaliacoes (reavaliar substitui a nota anterior)."""
+    ratings = load_json(TASTE, {"ratings": {}}).get("ratings", {})
+    feats = load_json(FEATURES, {}) if os.path.exists(FEATURES) else {}
+    meta = load_json(META, {}) if os.path.exists(META) else {}
+    by_f = {it["f"]: it for it in items()}
+    weights, seen = {}, {}
+    for f, r in ratings.items():
+        it = by_f.get(f)
+        if not it or r.get("v") not in (1, -1):
+            continue
+        ft = item_features(it, feats, meta)
+        for dim in r.get("dims", []):
+            if dim in ft:
+                k = f"{dim}:{ft[dim]}"
+                weights[k] = weights.get(k, 0) + r["v"]
+        for dim in ("artist", "genre", "cat"):
+            if dim in ft:
+                k = f"{dim}:{ft[dim]}"
+                seen[k] = seen.get(k, 0) + 1
+    return weights, seen
+
+
+def item_weight(it, weights, seen, explore, feats, meta):
+    import math
+    ft = item_features(it, feats, meta)
+    keys = [f"{d}:{v}" for d, v in ft.items()]
+    if explore:
+        return 1.0 / (1 + sum(seen.get(k, 0) for k in keys if k.split(":")[0] in ("artist", "genre", "cat")))
+    return math.exp(0.5 * max(-6, min(6, sum(weights.get(k, 0) for k in keys))))
+
+
+def weighted_order(pool):
+    """Ordem sorteada com peso (Efraimidis-Spirakis): quanto maior o peso, mais perto do inicio."""
+    weights, seen = taste_model()
+    feats = load_json(FEATURES, {}) if os.path.exists(FEATURES) else {}
+    meta = load_json(META, {}) if os.path.exists(META) else {}
+    explore = random.random() < EXPLORE
+    keyed = [(random.random() ** (1.0 / item_weight(it, weights, seen, explore, feats, meta)), it) for it in pool]
+    return [it for _, it in sorted(keyed, key=lambda x: x[0], reverse=True)]
+
+
+def cmd_rate(value, reasons):
+    cur = load_json(STATE, {}).get("current")
+    if not cur:
+        sys.exit("sem pintura atual")
+    bad = [r for r in reasons if r not in DIMS and r != "imagem"]
+    if bad:
+        sys.exit(f"motivo desconhecido: {bad}")
+    only_image = "imagem" in reasons
+    dims = [d for r in reasons if r in DIMS for d in DIMS[r]]
+    if not reasons:
+        dims = [d for ds in DIMS.values() for d in ds]
+    data = load_json(TASTE, {"ratings": {}})
+    if only_image and value == -1:
+        data["ratings"].pop(cur, None)
+        prev = excluded()
+        if cur not in prev:
+            with open(f"{ART}/exclude.txt", "a") as f:
+                f.write(("\n" if prev and not open(f"{ART}/exclude.txt").read().endswith("\n") else "") + cur + "\n")
+    else:
+        data["ratings"][cur] = {"v": value, "dims": dims, "ts": int(time.time())}
+    save_json(TASTE, data)
+    for stale in (NEXT_JSON, NEXT_JPG):  # a escolha ja baixada foi feita com o gosto antigo
+        if os.path.exists(stale):
+            os.remove(stale)
+    print(json.dumps({"current": cur, "v": value, "dims": dims, "excluded": only_image and value == -1}))
+
+
+def cmd_taste():
+    weights, seen = taste_model()
+    ranked = sorted(weights.items(), key=lambda kv: kv[1], reverse=True)
+    print(json.dumps({"likes": ranked[:8], "dislikes": [kv for kv in ranked[::-1] if kv[1] < 0][:8],
+                      "ratings": len(load_json(TASTE, {"ratings": {}})["ratings"])}, ensure_ascii=False))
+
+
 def pick_pool():
     good, _ = eligible()
     state = load_json(STATE, {"recent": []})
@@ -427,8 +555,7 @@ def pick_pool():
     if load_json(CFG, DEFAULTS).get("by_time"):
         base = band_pool(good) or good
     pool = [it for it in base if it["f"] not in recent] or base or items()
-    random.shuffle(pool)
-    return pool
+    return weighted_order(pool)
 
 
 NEXT_JSON = f"{CACHE_DIR}/next.json"
@@ -541,7 +668,12 @@ def cmd_choose():
 def cmd_status():
     s = load_json(STATE, {"recent": []})
     s["config"] = load_json(CFG, DEFAULTS)
-    print(json.dumps(s))
+    cur = next((i for i in items() if i["f"] == s.get("current")), None)
+    if cur:
+        s["features"] = item_features(cur, load_json(FEATURES, {}) if os.path.exists(FEATURES) else {},
+                                      load_json(META, {}) if os.path.exists(META) else {})
+        s["rating"] = load_json(TASTE, {"ratings": {}})["ratings"].get(cur["f"])
+    print(json.dumps(s, ensure_ascii=False))
 
 
 def cmd_config(args):
@@ -569,6 +701,12 @@ def main():
         cmd_peek_guard()
     elif cmd == "lum":
         cmd_lum()
+    elif cmd == "features":
+        cmd_features()
+    elif cmd in ("like", "dislike"):
+        cmd_rate(1 if cmd == "like" else -1, sys.argv[2:])
+    elif cmd == "taste":
+        cmd_taste()
     elif cmd == "meta":
         cmd_meta()
     elif cmd == "prefetch":
