@@ -126,10 +126,6 @@ hl.config({
 --   },
 -- })
 
--- Brave: on the new tab page only (its title is "New Tab"), the window turns see-through so the
--- wallpaper shows behind it. Opacity is "focused unfocused"; lower = more see-through.
-o.window({ class = "^brave-origin$", title = "^(New Tab|Nova guia) - Brave Origin$" }, { opacity = "0.6 0.6" })
-
 -- Opt another application in to Omarchy's standard transparency.
 -- Find its class with: hyprctl clients
 -- o.transparent_window("my-app")

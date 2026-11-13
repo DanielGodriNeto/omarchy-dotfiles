@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# Keeps the new tab page's background (~/.local/share/brave-newtab/bg.jpg) equal to
+# the current desktop wallpaper. The page itself is installed once; Brave opens it
+# through the NewTabPageLocation policy (see ideias/033-brave-nova-aba-papel-de-parede.md).
+
+WALLPAPER="$HOME/.local/state/omarchy/current/background"
+DEST_DIR="$HOME/.local/share/brave-newtab"
+
+[[ -e $WALLPAPER ]] || exit 0
+[[ -d $DEST_DIR ]] || exit 0
+
+cp -fL "$WALLPAPER" "$DEST_DIR/bg.jpg"

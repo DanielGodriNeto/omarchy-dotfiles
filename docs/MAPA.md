@@ -1,5 +1,6 @@
 # Mapa de arquivos (gerado por scripts/map.sh, não edite à mão)
 
+- `.config/brave-newtab/index.html`: New tab page: the current desktop wallpaper (bg.jpg, refreshed on every Omarchy
 - `.config/hypr/autostart.lua`: Extra autostart processes.
 - `.config/hypr/bindings.lua`: Keep only your personal keybinding overrides here. Add new bindings or
 - `.config/hypr/input.lua`: Keep only your personal input overrides here. Uncommented settings below
@@ -15,6 +16,7 @@
 - `.config/omarchy/hooks/theme-set.d/30-sync-vicinae-theme`: Copies the rendered Vicinae theme (vicinae.toml, from themed/vicinae.toml.tpl)
 - `.config/omarchy/hooks/theme-set.d/35-sync-vivaldi-theme`: Copies the rendered Vivaldi CSS mod (vivaldi.css, from themed/vivaldi.css.tpl)
 - `.config/omarchy/hooks/theme-set.d/40-sync-dorion-theme`: Copies the rendered Dorion (Discord) theme from themed/dorion.theme.css.tpl into
+- `.config/omarchy/hooks/theme-set.d/45-sync-brave-newtab`: Keeps the new tab page's background (~/.local/share/brave-newtab/bg.jpg) equal to
 - `.config/omarchy/plugins/mancato.bar/Bar.qml`: The omarchy-shell host injects omarchyPath from OMARCHY_PATH.
 - `.config/omarchy/plugins/mancato.bar/BarModel.js`: The bar's sections in the order they run along it, and tray, drawn inside
 - `.config/omarchy/plugins/mancato.bar/BarTooltips.js`: What each bar widget does, shown when the pointer rests on it. Keyed by the

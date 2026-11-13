@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>New Tab</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  /* New tab page: the current desktop wallpaper (bg.jpg, refreshed on every Omarchy
+     theme change by hooks/theme-set.d/45-sync-brave-newtab) and a search box. */
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: #1c2027 url("bg.jpg") center / cover no-repeat fixed;
+    display: flex; align-items: center; justify-content: center;
+    font-family: system-ui, sans-serif;
+  }
+  form { width: min(560px, 86vw); }
+  input {
+    width: 100%; box-sizing: border-box; padding: 14px 20px; font-size: 17px;
+    border: 1px solid rgba(255,255,255,.22); border-radius: 14px; outline: none;
+    color: #fff; background: rgba(20,20,20,.38); backdrop-filter: blur(14px);
+  }
+  input::placeholder { color: rgba(255,255,255,.65); }
+  input:focus { border-color: rgba(255,255,255,.55); }
+</style>
+</head>
+<body>
+<form action="https://www.google.com/search" method="get">
+  <input name="q" type="search" placeholder="Pesquisar no Google ou digitar um endereço" autofocus autocomplete="off">
+</form>
+</body>
+</html>

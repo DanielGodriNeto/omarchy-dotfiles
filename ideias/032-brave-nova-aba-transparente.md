@@ -1,6 +1,6 @@
 # Brave: nova aba transparente
 
-- **Estado:** Feito (regra aplicada em 13/11/2026; o ajuste fino depende do gosto do usuário)
+- **Estado:** Substituído pela [ideia 033](033-brave-nova-aba-papel-de-parede.md) (a regra de opacidade foi removida: o usuário queria só a imagem de fundo da nova aba, não a janela inteira)
 - **Origem:** pedido do usuário (13/11/2026)
 - **Resumo:** só na página de nova aba (título `New Tab - Brave Origin`, classe `brave-origin`) a janela do Brave fica translúcida (opacidade 0.6), mostrando o papel de parede por trás. Qualquer outra aba volta ao normal sozinha (a regra casa pelo título).
 
