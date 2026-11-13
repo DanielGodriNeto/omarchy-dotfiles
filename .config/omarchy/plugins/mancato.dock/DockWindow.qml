@@ -133,6 +133,52 @@ PanelWindow {
     var count = window.dock ? window.dock.itemModel.count : 0
     return Math.max(0, Math.min(count, Math.round((along - first) / window.slotSize)))
   }
+  // Window preview: resting the pointer on a running app for a moment shows
+  // its windows as thumbnails above the dock; clicking one brings it forward.
+  property var previewItem: null
+  property Item previewSlot: null
+  property Item previewTarget: null
+
+  function previewHoverChanged(slot, over) {
+    if (over && slot.windowCount > 0 && !window.menuOpen && !window.dragging) {
+      window.previewTarget = slot
+      previewHideTimer.stop()
+      // Already showing another app's windows: switch at once.
+      previewTimer.interval = window.previewItem ? 0 : 450
+      previewTimer.restart()
+    } else if (window.previewTarget === slot) {
+      window.previewTarget = null
+      previewTimer.stop()
+      previewHideTimer.restart()
+    }
+  }
+
+  function closePreview() {
+    previewTimer.stop()
+    previewHideTimer.stop()
+    window.previewTarget = null
+    window.previewItem = null
+    window.previewSlot = null
+  }
+
+  onContentShownChanged: if (!contentShown) window.closePreview()
+
+  Timer {
+    id: previewTimer
+    onTriggered: {
+      if (!window.previewTarget || window.menuOpen || window.dragging) return
+      window.previewItem = window.previewTarget.modelData
+      window.previewSlot = window.previewTarget
+    }
+  }
+
+  // Long enough to cross the gap between the icon and the thumbnails.
+  Timer {
+    id: previewHideTimer
+    interval: 220
+    onTriggered: if (!preview.hovered && !window.previewTarget) window.closePreview()
+  }
+
   property var menuItem: null
   property Item menuSlot: null
   // The apps button's menu: where the dock sits and whether it hides.
@@ -147,6 +193,7 @@ PanelWindow {
   Component.onCompleted: if (dock) dock.readMode(workspaceId)
 
   function openMenu(item, slot) {
+    window.closePreview()
     window.settingsMenu = false
     window.menuItem = item
     window.menuSlot = slot
@@ -220,6 +267,7 @@ PanelWindow {
 
     Region { item: window.shown && window.autohide ? edgeTrigger : null }
     Region { item: menu.visible ? menu : null }
+    Region { item: preview.visible ? preview : null }
   }
 
   onAutohideChanged: window.revealed = false
@@ -229,7 +277,7 @@ PanelWindow {
     // Long enough to cross a gap between the edge and the icons, no longer.
     interval: 150
     onTriggered: {
-      if (!bodyHover.hovered && !edgeHover.hovered && !window.menuOpen && !window.dragging) window.revealed = false
+      if (!bodyHover.hovered && !edgeHover.hovered && !preview.hovered && !window.menuOpen && !window.dragging) window.revealed = false
     }
   }
 
@@ -480,6 +528,8 @@ PanelWindow {
 
     z: lifted ? 1 : 0
 
+    onHoveredChanged: window.previewHoverChanged(appSlot, hovered)
+
     // The slot, and the pointer handling in it, stays where it is; only the
     // icon moves. Reading the pointer through a slot that moves with it would
     // feed each move back into the next.
@@ -535,6 +585,7 @@ PanelWindow {
         return
       }
       window.closeMenu()
+      window.closePreview()
       if (event.button === Qt.MiddleButton) window.dock.launch(appSlot.modelData)
       else window.dock.activate(appSlot.modelData)
     }
@@ -652,6 +703,88 @@ PanelWindow {
         visible: menu.running
         text: Commons.I18n.t("dock.quit")
         onTriggered: window.dock.quit(menu.item)
+      }
+    }
+  }
+
+  BorderSurface {
+    id: preview
+
+    readonly property bool hovered: previewHover.hovered
+    readonly property var wins: window.previewItem ? window.previewItem.windows.slice(0, 4) : []
+    readonly property real thumbWidth: Style.space(176)
+    readonly property real thumbHeight: Style.space(110)
+
+    visible: window.contentShown && wins.length > 0 && !window.menuOpen && !window.dragging
+    width: previewRow.implicitWidth + padding * 2
+    height: previewRow.implicitHeight + padding * 2
+    x: window.popupX(window.previewSlot, preview)
+    y: window.popupY(window.previewSlot, preview)
+    radius: Style.cornerRadius + 2
+    color: Commons.Color.popups.background
+    borderSpec: Border.surfaceSpec("popups", "border", Commons.Color.popups.border, Style.normalBorderWidth)
+    padding: Style.spacing.sm
+
+    HoverHandler {
+      id: previewHover
+      onHoveredChanged: if (!hovered) previewHideTimer.restart()
+    }
+
+    Row {
+      id: previewRow
+      x: preview.contentLeftInset
+      y: preview.contentTopInset
+      spacing: Style.spacing.sm
+
+      Repeater {
+        model: preview.wins
+
+        delegate: Column {
+          id: tile
+
+          required property var modelData
+          spacing: Style.spacing.xs
+
+          Rectangle {
+            width: preview.thumbWidth
+            height: preview.thumbHeight
+            radius: Style.cornerRadius
+            color: Commons.Color.background
+            clip: true
+            border.width: tileMouse.containsMouse ? 2 : 0
+            border.color: Commons.Color.accent
+
+            // The window as it is, kept in proportion inside the thumbnail.
+            ScreencopyView {
+              anchors.centerIn: parent
+              captureSource: tile.modelData.toplevel
+              constraintSize: Qt.size(preview.thumbWidth, preview.thumbHeight)
+              live: false
+            }
+
+            MouseArea {
+              id: tileMouse
+              anchors.fill: parent
+              hoverEnabled: true
+              cursorShape: Qt.PointingHandCursor
+              onClicked: {
+                window.dock.bringForward(tile.modelData)
+                window.closePreview()
+              }
+            }
+          }
+
+          Text {
+            width: preview.thumbWidth
+            horizontalAlignment: Text.AlignHCenter
+            textFormat: Text.PlainText
+            elide: Text.ElideRight
+            text: tile.modelData.toplevel ? tile.modelData.toplevel.title : ""
+            color: Commons.Color.popups.text
+            font.family: Style.font.family
+            font.pixelSize: Style.font.body
+          }
+        }
       }
     }
   }
