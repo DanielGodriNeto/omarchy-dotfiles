@@ -34,6 +34,9 @@ Panel {
   Timer { interval: 3000; repeat: true; running: root.opened; triggeredOnStart: true; onTriggered: if (!poll.running) poll.running = true }
   Timer { id: refreshSoon; interval: 600; onTriggered: if (!poll.running) poll.running = true }
 
+  implicitWidth: button.implicitWidth
+  implicitHeight: button.implicitHeight
+
   BarIconButton {
     id: button
     anchors.fill: parent
