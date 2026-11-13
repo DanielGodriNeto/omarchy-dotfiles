@@ -302,6 +302,26 @@ def cmd_flush_reload():
             subprocess.run(["hyprctl", "dispatch", f'hl.dsp.focus({{ workspace = "{ws}" }})'], capture_output=True)
 
 
+# faixas de matiz (graus, fim exclusivo) -> variante de icones Yaru e acento do GTK
+ICON_BANDS = [(15, "red", "red"), (38, "wartybrown", "orange"), (60, "yellow", "yellow"), (100, "olive", "green"),
+              (150, "sage", "green"), (195, "prussiangreen", "teal"), (250, "blue", "blue"),
+              (295, "purple", "purple"), (335, "magenta", "pink"), (361, "red", "red")]
+
+
+def icon_and_accent(accent_hex):
+    """Variante Yaru (pastas e icones) e acento do GTK mais proximos do acento da pintura."""
+    r, g, b = (int(accent_hex[i:i + 2], 16) / 255 for i in (1, 3, 5))
+    hue = colorsys.rgb_to_hls(r, g, b)[0] * 360
+    for end, icons, gtk in ICON_BANDS:
+        if hue < end:
+            return f"Yaru-{icons}", gtk
+    return "Yaru-red", "red"
+
+
+def apply_gnome_accent(gtk):
+    subprocess.run(["gsettings", "set", "org.gnome.desktop.interface", "accent-color", gtk], check=False)
+
+
 def apply(item, ready=None):
     os.makedirs(f"{THEME_DIR}/backgrounds", exist_ok=True)
     meta = load_json(META, {}) if os.path.exists(META) else {}
@@ -312,6 +332,9 @@ def apply(item, ready=None):
         prepare(item, meta, wall)
     colors = build_palette(sample_pixels(f"{ART}/{item['f']}"))
     write_colors_toml(f"{THEME_DIR}/colors.toml", colors)
+    icons, gtk_accent = icon_and_accent(colors["accent"])
+    with open(f"{THEME_DIR}/icons.theme", "w") as f:
+        f.write(icons)
     # miniatura do tema na tela de temas (Ctrl+Shift+Super+Espaco): mostra a pintura atual
     subprocess.run(["magick", wall, "-resize", "1280x720", f"{THEME_DIR}/preview.png"], check=False)
     for old in os.listdir(f"{THEME_DIR}/backgrounds"):
@@ -330,6 +353,7 @@ def apply(item, ready=None):
                          start_new_session=True)
         time.sleep(0.3)  # o vigia precisa estar escutando antes
     subprocess.run(["omarchy", "theme", "set", THEME], check=False, env=env)
+    apply_gnome_accent(gtk_accent)
     state = load_json(STATE, {"recent": []})
     recent = ([item["f"]] + [r for r in state.get("recent", []) if r != item["f"]])[:RECENT]
     save_json(STATE, {"recent": recent, "current": item["f"], "title": item["t"].removeprefix("File:"),
