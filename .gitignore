@@ -1,2 +1,3 @@
 /graphify-out/
 /.graphifyignore
+__pycache__/
