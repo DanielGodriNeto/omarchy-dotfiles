@@ -27,6 +27,10 @@
 -- workspace, then bring them back on the next press).
 o.bind("SUPER + D", "Peek desktop", "omarchy-peek-desktop")
 
+-- Open the Dead Cells interactive biome map (click a biome to apply it as
+-- the desktop theme).
+o.bind("SUPER + SHIFT + D", "Dead Cells biome map", "omarchy-deadcells-map")
+
 -- Toggle the btop + cliamp desktop widgets (system stats + music player)
 -- in and out of view. They run persistently in the background (see
 -- hypr/autostart.lua) and are tiled side by side like the Cyberpunk
@@ -48,3 +52,15 @@ o.bind("SUPER + SHIFT + Z", "Toggle wallpaper effect", "omarchy-wallpaper-effect
 -- o.bind("SUPER + SHIFT + S", nil, "omarchy-capture-screenshot")
 -- o.bind("SUPER + H", nil, "voxtype record toggle")
 -- o.bind("SUPER + PERIOD", nil, "omarchy-shell shell toggle omarchy.emojis")
+
+-- Dictation keys from before Alt + Space and Right Alt became the defaults.
+-- Remove these lines to give the keys back to applications.
+if o.dictation_installed and o.dictation_installed() then
+  o.bind("SUPER + CTRL + X", "Toggle dictation", "omarchy-dictation toggle")
+  o.bind_hold("F9", "Start dictation (push-to-talk)", "omarchy-dictation start", "Stop dictation (push-to-talk)", "omarchy-dictation stop")
+end
+
+-- Alternar o layout do workspace (dwindle/rolagem/flutuante) desligado: sair do layout em rolagem derruba
+-- o Hyprland 0.56.2. Religar quando o Hyprland for atualizado (0.57+): apague estas duas linhas.
+hl.unbind("SUPER + L")
+hl.unbind("SUPER + ALT + L")

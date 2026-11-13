@@ -79,9 +79,11 @@ hl.animation({ leaf = "layersIn", enabled = true, speed = 2.6, bezier = "fluid",
 hl.animation({ leaf = "layersOut", enabled = true, speed = 1.8, bezier = "fluidOut", style = "fade" })
 hl.animation({ leaf = "workspaces", enabled = true, speed = 3.2, bezier = "fluid", style = "slide" })
 
--- Layout em rolagem (colunas deslizando como no Niri). SUPER+L volta ao dwindle por workspace.
+-- Layout padrao: dwindle. O layout em rolagem (colunas como no Niri) derruba o Hyprland 0.56.2 quando um
+-- workspace sai dele (SIGSEGV em ~CScrollingFullscreenHandler, 13/11/2026). Para testar a rolagem,
+-- troque para "scrolling" aqui, mas so depois de atualizar o Hyprland (0.57+).
 hl.config({
-  general = { layout = "scrolling" },
+  general = { layout = "dwindle" },
   scrolling = {
     column_width = 0.5,
     explicit_column_widths = "0.333, 0.5, 0.667, 1.0",
