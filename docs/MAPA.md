@@ -14,6 +14,7 @@
 - `.config/omarchy/extensions/omarchy-menu.jsonc`: Extend the Quickshell Omarchy menu with JSONC. See the stock comments:
 - `.config/omarchy/hooks/theme-set.d/30-sync-vicinae-theme`: Copies the rendered Vicinae theme (vicinae.toml, from themed/vicinae.toml.tpl)
 - `.config/omarchy/hooks/theme-set.d/35-sync-vivaldi-theme`: Copies the rendered Vivaldi CSS mod (vivaldi.css, from themed/vivaldi.css.tpl)
+- `.config/omarchy/hooks/theme-set.d/40-sync-dorion-theme`: Copies the rendered Dorion (Discord) theme from themed/dorion.theme.css.tpl into
 - `.config/omarchy/plugins/mancato.bar/Bar.qml`: The omarchy-shell host injects omarchyPath from OMARCHY_PATH.
 - `.config/omarchy/plugins/mancato.bar/BarModel.js`: The bar's sections in the order they run along it, and tray, drawn inside
 - `.config/omarchy/plugins/mancato.bar/BarTooltips.js`: What each bar widget does, shown when the pointer rests on it. Keyed by the
@@ -84,6 +85,7 @@
 - `.config/omarchy/plugins/mancato.painting/Painting.qml`: Painting panel: the current painting, one-click like (teaches everything) and
 - `.config/omarchy/plugins/mancato.painting/manifest.json`:   "description": "Current painting with like/dislike feedback, change now and time-of-day switch",
 - `.config/omarchy/shell.json`:   "bar": {
+- `.config/omarchy/themed/dorion.theme.css.tpl`: (sem descrição)
 - `.config/omarchy/themed/shell.toml.tpl`: OVERRIDE of default/themed/shell.toml.tpl (calm, macOS/Spotlight-like).
 - `.config/omarchy/themed/vicinae.toml.tpl`: Vicinae launcher theme. Rendered by omarchy-theme-set-templates on every theme
 - `.config/omarchy/themed/vivaldi.css.tpl`: Vivaldi UI colors from the active Omarchy theme (CSS mod). Rendered on every theme

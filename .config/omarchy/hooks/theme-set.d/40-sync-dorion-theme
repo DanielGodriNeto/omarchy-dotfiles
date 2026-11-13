@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Copies the rendered Dorion (Discord) theme from themed/dorion.theme.css.tpl into
+# Dorion's themes folder. Pick "Omarchy" once in Dorion > Settings > Themes; after
+# that it follows each theme change (reload the client to see it).
+
+THEME_FILE="$HOME/.local/state/omarchy/current/theme/dorion.theme.css"
+DEST_DIR="$HOME/.config/dorion/themes"
+
+[[ -f $THEME_FILE ]] || exit 0
+command -v Dorion >/dev/null || exit 0
+
+mkdir -p "$DEST_DIR"
+cp -f "$THEME_FILE" "$DEST_DIR/omarchy.theme.css"

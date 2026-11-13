@@ -34,3 +34,4 @@ Regra: toda ideia nova do usuário vira um arquivo em `ideias/NNN-slug.md` e uma
 | [Modo da tela externa no painel Display](ideias/028-modo-da-tela.md) | Feito (falta testar com HDMI físico) |
 | [Janelas sólidas, transparentes ou vidro no painel](ideias/029-janelas-vidro.md) | Feito (falta clicar no painel) |
 | [Opção do relógio e cores nos apps](ideias/030-relogio-opcao-e-cores-dos-apps.md) | Em andamento (ver o arquivo: Spotify, Vivaldi, decisões) |
+| [Spotify com capas e Discord leve (Dorion)](ideias/031-spotify-capas-e-discord-dorion.md) | Feito (falta escolher o tema no Dorion e ver) |
