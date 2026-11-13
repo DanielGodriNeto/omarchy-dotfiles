@@ -1,6 +1,6 @@
 # Handoff (curto): Hyprland/Omarchy do mancato
 
-**Verificado no commit `607be73` em 13/11/2026** (o verificador confere que o sha existe, que nenhum arquivo que não seja `.md` mudou desde ele e que todo caminho citado aqui existe).
+**Verificado no commit `2221c49` em 13/11/2026** (o verificador confere que o sha existe, que nenhum arquivo que não seja `.md` mudou desde ele e que todo caminho citado aqui existe).
 
 Histórico completo e fatos técnicos: [docs/HISTORICO.md](docs/HISTORICO.md). Ideias e estados: [ideias.md](ideias.md). Mapa do código: `graphify-out/GRAPH_REPORT.md` (consulte com `graphify query`).
 
@@ -13,7 +13,10 @@ Histórico completo e fatos técnicos: [docs/HISTORICO.md](docs/HISTORICO.md). I
 - Plymouth Pintura instalado (foto do momento; atualizar = `system/plymouth-pintura/build.sh` + `install.sh` com sudo).
 - Feitos (13/11): cantos ativos, expose (SUPER+SHIFT+grave), histórico de notificações (SUPER+ALT+N), relógio/legenda no desktop, `focus-mode` (SUPER+ALT+Z). Pendentes: 015 (gestos), 016 (vinheta).
 
-- Pesquisa de distros/rices (ideia 019) concluída em [docs/PESQUISA-DISTROS.md](docs/PESQUISA-DISTROS.md): ranking e síntese de ordem de aplicação no fim do doc. Falta o usuário escolher; cada escolha vira ideia 020+. Parâmetros do lado Hyprland vieram de memória: conferir na 0.56.2 antes de aplicar. Licenças: end-4 e Caelestia são GPL-3 (só reescrever); MacShell é MIT.
+- Pesquisa de distros/rices (ideia 019) concluída em [docs/PESQUISA-DISTROS.md](docs/PESQUISA-DISTROS.md) (ranking no fim). Licenças: end-4 e Caelestia são GPL-3 (só reescrever); MacShell é MIT.
+- **Aplicado da pesquisa (ideias 020-029):** squircle/sombra/curvas (`looknfeel.lua`), Vicinae em `SUPER+R` (tema sincronizado por hook), dock com press/bounce/zoom/preview de janela/bolinha que acompanha, notificações com swipe, tooltips na barra (`BarTooltips.js`), menu SUPER+SPACE clonado com atalhos em teclas e explicações (`mancato.menu`, atalhos gerados por `scripts/menu-shortcuts.py`), painel de controle com linhas Cantos (`corner-radius`) e Janelas, painel Display clonado com Modo da tela (`display-mode`).
+- **Falta o usuário ver com o mouse real** (não dava para testar por script): zoom e preview da dock, swipe das notificações, tooltips, cliques das linhas do painel. Não testado com HDMI físico: modo "Só externa".
+- **Cuidados:** plugin QML alterado exige `omarchy restart shell`; clones (`mancato.menu`, `mancato.monitor`, `mancato.dock`, `mancato.notifications`, `mancato.bar`) não recebem updates do original. Um monitor virtual `HDMI-A-1` do teste de 13/11 fica até reiniciar a sessão do Hyprland: reiniciar a sessão antes de ligar a TV. Rodar `python3 -I scripts/menu-shortcuts.py` após atualizar o Omarchy.
 
 - Pintura: painel no clique esquerdo do botão da barra (`mancato.painting`): Gostei (1 clique) / Não gostei (com motivos) alimentam `~/.config/painting-theme/taste.json`; 30% dos sorteios exploram. Acervo com ~1267 pinturas (`painting-theme-discover` amplia, depois `meta`, `lum`, `features`).
 
