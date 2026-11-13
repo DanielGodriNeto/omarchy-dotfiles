@@ -13,8 +13,8 @@ Repositório PÚBLICO de personalizações do Omarchy/Hyprland (caminhos espelha
 
 ## Como buscar (nesta ordem)
 1. `docs/MAPA.md` (gerado): "onde fica X" por arquivo.
-2. `rg` para literais (função, atalho, comando, chave de config). Responde em segundos.
-3. `graphify query "<pergunta>"` só para relações e visão geral. É **pista, nunca prova**: o grafo é cego a parte da configuração e já errou respostas com confiança (`docs/graph/AVALIACAO.md`).
+2. `rg --hidden -g '!.git' -g '!graphify-out'` para literais (função, atalho, comando, chave de config). **`--hidden` é obrigatório:** quase tudo mora em `.config/` e `.local/`, e o `rg` puro não entra em pastas ocultas (acha só README e docs).
+3. `graphify query "<pergunta>"` só para relações e visão geral. É **pista, nunca prova**: fora da amostra acerta cerca de metade (`docs/graph/AVALIACAO.md`). `scripts/graph-verify.py` confere a camada semântica contra o código (sem LLM).
 4. Leia o arquivo-fonte antes de editar ou afirmar qualquer coisa.
 
 ## Fonte da verdade

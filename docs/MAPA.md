@@ -47,6 +47,7 @@
 - `ideias.md`: Ideias do projeto (log vivo)
 - `scripts/graph-refresh.sh`: Reconstrói graphify-out/: AST do código (sem LLM) + camada semântica versionada (docs/graph/semantic.json).
 - `scripts/graph-test.sh`: Teste de regressão do grafo: cada pergunta deve devolver TODAS as substrings esperadas (separadas por |).
+- `scripts/graph-verify.py`: """Crítico automático (sem LLM) da camada semântica do grafo: confere cada nó e aresta de
 - `scripts/install-hooks.sh`: Instala os hooks versionados (pre-commit: MAPA.md; post-commit: grafo em segundo plano).
 - `scripts/map.sh`: Gera docs/MAPA.md: uma linha por arquivo versionado com a primeira descrição/comentário.
 - `scripts/post-commit.hook`: Pós-commit: nunca bloqueia. Refresh do grafo em segundo plano, só AST, com lock (a camada semântica é sob demanda: STALE-SEMANTIC).
