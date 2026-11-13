@@ -9,10 +9,29 @@ Panel {
   moduleName: "mancato.control-center"
   ipcTarget: "mancato.control-center"
 
-  property var st: ({ wifi: false, bt: false, night: false, profile: "", volume: 0, muted: false, brightness: 50 })
+  property var st: ({ wifi: false, bt: false, night: false, dnd: false, profile: "", volume: 0, muted: false, brightness: 50 })
   readonly property var profileOrder: ["power-saver", "balanced", "performance"]
   readonly property var profileNames: ({ "power-saver": "Economia", "balanced": "Equilibrado", "performance": "Desempenho" })
 
+  // Cursor do teclado: 0-4 tiles (2 colunas, o 5o ocupa a linha), 5 volume, 6 brilho
+  property int cursor: -1
+  onOpenedChanged: if (!opened) cursor = -1
+  function move(dx, dy) {
+    if (cursor < 0) { cursor = 0; return }
+    if (dy > 0) cursor = cursor <= 1 ? cursor + 2 : (cursor <= 3 ? 4 : Math.min(6, cursor + 1))
+    else if (dy < 0) cursor = cursor >= 5 ? cursor - 1 : (cursor === 4 ? 2 : (cursor >= 2 ? cursor - 2 : cursor))
+    else if (cursor <= 3) cursor = cursor ^ 1
+    else if (cursor === 5) run("wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%" + (dx > 0 ? "+" : "-"))
+    else if (cursor === 6) run("brightnessctl -q set 5%" + (dx > 0 ? "+" : "-"))
+  }
+  function activate() {
+    if (cursor === 0) run("nmcli radio wifi " + (st.wifi ? "off" : "on"))
+    else if (cursor === 1) run("bluetoothctl power " + (st.bt ? "off" : "on"))
+    else if (cursor === 2) run("omarchy-toggle-nightlight")
+    else if (cursor === 3) run("powerprofilesctl set " + nextProfile())
+    else if (cursor === 4) run("omarchy-toggle-notification-silencing")
+    else if (cursor === 5) run("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle")
+  }
   function run(command) {
     Util.execDetached(command)
     refreshSoon.restart()
@@ -42,6 +61,7 @@ Panel {
     anchors.fill: parent
     bar: root.bar
     text: "󰒓"
+    slotSize: Style.bar.statusSlot
     tooltipText: "Central de controle"
     onPressed: function(b) { root.toggle() }
   }
@@ -61,6 +81,8 @@ Panel {
       implicitHeight: column.implicitHeight
       onCloseRequested: root.close()
       onTabRequested: function(direction) { root.switchPanel(direction) }
+      onMoveRequested: function(dx, dy) { root.move(dx, dy) }
+      onActivateRequested: root.activate()
 
       Column {
         id: column
@@ -75,17 +97,21 @@ Panel {
           columns: 2
           spacing: Style.space(8)
 
-          Tile { icon: "󰖩"; label: "Wi-Fi"; sub: root.st.wifi ? "Ligado" : "Desligado"; on: root.st.wifi
+          Tile { idx: 0; icon: "󰖩"; label: "Wi-Fi"; sub: root.st.wifi ? "Ligado" : "Desligado"; on: root.st.wifi
             onClicked: root.run("nmcli radio wifi " + (root.st.wifi ? "off" : "on")) }
-          Tile { icon: "󰂯"; label: "Bluetooth"; sub: root.st.bt ? "Ligado" : "Desligado"; on: root.st.bt
+          Tile { idx: 1; icon: "󰂯"; label: "Bluetooth"; sub: root.st.bt ? "Ligado" : "Desligado"; on: root.st.bt
             onClicked: root.run("bluetoothctl power " + (root.st.bt ? "off" : "on")) }
-          Tile { icon: "󰖔"; label: "Luz noturna"; sub: root.st.night ? "Ligada" : "Desligada"; on: root.st.night
+          Tile { idx: 2; icon: "󰖔"; label: "Luz noturna"; sub: root.st.night ? "Ligada" : "Desligada"; on: root.st.night
             onClicked: root.run("omarchy-toggle-nightlight") }
-          Tile { icon: "󱐋"; label: "Energia"; sub: root.profileNames[root.st.profile] || root.st.profile; on: root.st.profile === "performance"
+          Tile { idx: 3; icon: "󱐋"; label: "Energia"; sub: root.profileNames[root.st.profile] || root.st.profile; on: root.st.profile === "performance"
             onClicked: root.run("powerprofilesctl set " + root.nextProfile()) }
         }
 
+        Tile { idx: 4; wide: true; icon: "󰂛"; label: "Não perturbe"; sub: root.st.dnd ? "Notificações silenciadas" : "Notificações ativas"; on: root.st.dnd
+          onClicked: root.run("omarchy-toggle-notification-silencing") }
+
         SliderRow {
+          idx: 5
           icon: root.st.muted ? "󰝟" : "󰕾"
           value: root.st.volume
           maximum: 1.0
@@ -93,6 +119,7 @@ Panel {
           onIconClicked: root.run("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle")
         }
         SliderRow {
+          idx: 6
           icon: "󰃟"
           value: root.st.brightness / 100
           maximum: 1.0
@@ -108,8 +135,12 @@ Panel {
     property string label: ""
     property string sub: ""
     property bool on: false
+    property int idx: -1
+    property bool wide: false
     signal clicked()
-    width: parent ? (parent.width - parent.spacing) / 2 : 100
+    width: parent ? (wide ? parent.width : (parent.width - parent.spacing) / 2) : 100
+    border.width: root.cursor === idx ? 2 : 0
+    border.color: Commons.Color.accent
     height: Style.space(64)
     radius: Style.cornerRadius
     color: on ? Commons.Color.accent : Style.selectedFillFor(root.bar.foreground, Commons.Color.accent)
@@ -144,10 +175,18 @@ Panel {
     property string icon: ""
     property alias value: slider.value
     property alias maximum: slider.maximum
+    property int idx: -1
     signal moved(real v)
     signal iconClicked()
     width: parent ? parent.width : 100
     height: Style.space(32)
+    Rectangle {
+      anchors.fill: parent
+      radius: Style.cornerRadius
+      color: "transparent"
+      border.width: root.cursor === row.idx ? 2 : 0
+      border.color: Commons.Color.accent
+    }
 
     Text {
       id: rowIcon
