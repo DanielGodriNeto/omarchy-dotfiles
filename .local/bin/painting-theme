@@ -7,6 +7,7 @@ Uso:
   painting-theme status          estado atual em JSON (usado pela barra)
   painting-theme config [chave valor]
   painting-theme daemon          troca no login, ao acordar e por tempo
+  painting-theme lum             calcula a luminosidade das pinturas (modo por horario)
 """
 import colorsys, fcntl, functools, json, os, random, shutil, subprocess, sys, time, urllib.parse, urllib.request
 
@@ -19,7 +20,7 @@ STATE = f"{STATE_DIR}/state.json"
 THEME = "pintura"
 THEME_DIR = f"{HOME}/.config/omarchy/themes/{THEME}"
 UA = "painting-theme-personal/1.0"
-DEFAULTS = {"enabled": True, "interval_min": 180, "on_boot": True, "on_wake": True, "min_gap_min": 5}
+DEFAULTS = {"enabled": True, "interval_min": 180, "on_boot": True, "on_wake": True, "min_gap_min": 5, "by_time": False}
 MIN_WIDTH = 1500   # abaixo disso o wallpaper ficaria borrado; tenta outra pintura
 RECENT = 15
 
@@ -148,6 +149,7 @@ def make_wallpaper(src, dest):
 # ---------- aplicar ----------
 
 META = f"{ART}/meta.json"
+LUM = f"{ART}/lum.json"
 MIN_ASPECT = 1.25   # mais estreito que isso cortaria demais ao preencher a tela
 CACHE_DIR = f"{HOME}/.cache/painting-theme"
 
@@ -331,14 +333,51 @@ def apply(item, ready=None):
     state = load_json(STATE, {"recent": []})
     recent = ([item["f"]] + [r for r in state.get("recent", []) if r != item["f"]])[:RECENT]
     save_json(STATE, {"recent": recent, "current": item["f"], "title": item["t"].removeprefix("File:"),
-                      "changed": int(time.time()), "accent": colors["accent"], "background": colors["background"]})
+                      "changed": int(time.time()), "band": current_band()[1], "accent": colors["accent"], "background": colors["background"]})
+
+
+def cmd_lum():
+    """Luminosidade media (0-1) de cada pintura elegivel; base do modo por horario."""
+    lum = load_json(LUM, {}) if os.path.exists(LUM) else {}
+    good, _ = eligible()
+    for it in good:
+        if it["f"] in lum:
+            continue
+        out = subprocess.run(["magick", f"{ART}/{it['f']}[0]", "-colorspace", "Gray", "-format", "%[fx:mean]", "info:"],
+                             capture_output=True, text=True).stdout
+        lum[it["f"]] = round(float(out), 4)
+    save_json(LUM, lum)
+    print(f"{len(lum)} pinturas com luminosidade")
+
+
+# faixas do dia: (hora inicial, nome, quartil de luminosidade 0=mais escura .. 3=mais clara)
+BANDS = [(0, "noite", 0), (6, "manha", 3), (10, "tarde", 2), (16, "entardecer", 1), (20, "noite", 0)]
+
+
+def current_band(hour=None):
+    hour = time.localtime().tm_hour if hour is None else hour
+    return [b for b in BANDS if b[0] <= hour][-1]
+
+
+def band_pool(good, hour=None):
+    """Pinturas do quartil de luminosidade da faixa atual; vazio se nao ha dados."""
+    lum = load_json(LUM, {}) if os.path.exists(LUM) else {}
+    ranked = sorted((it for it in good if it["f"] in lum), key=lambda it: lum[it["f"]])
+    if not ranked:
+        return []
+    q = current_band(hour)[2]
+    n = len(ranked)
+    return ranked[n * q // 4:n * (q + 1) // 4]
 
 
 def pick_pool():
     good, _ = eligible()
     state = load_json(STATE, {"recent": []})
     recent = set(state.get("recent", []))
-    pool = [it for it in good if it["f"] not in recent] or good or items()
+    base = good
+    if load_json(CFG, DEFAULTS).get("by_time"):
+        base = band_pool(good) or good
+    pool = [it for it in base if it["f"] not in recent] or base or items()
     random.shuffle(pool)
     return pool
 
@@ -357,7 +396,7 @@ def cmd_prefetch():
     item = pick_pool()[0]
     _, meta = eligible()
     prepare(item, meta, NEXT_JPG)
-    save_json(NEXT_JSON, item)
+    save_json(NEXT_JSON, {**item, "band": current_band()[1]})
 
 
 def start_prefetch():
@@ -367,7 +406,8 @@ def start_prefetch():
 
 def cmd_next():
     ready = load_json(NEXT_JSON, {}) if os.path.exists(NEXT_JSON) else {}
-    if ready.get("f") and os.path.exists(NEXT_JPG):
+    stale = load_json(CFG, DEFAULTS).get("by_time") and ready.get("band") != current_band()[1]
+    if ready.get("f") and os.path.exists(NEXT_JPG) and not stale:
         os.remove(NEXT_JSON)
         apply(ready, ready=NEXT_JPG)
     else:
@@ -425,7 +465,9 @@ def cmd_daemon():
             if "boolean false" in line and cfg["on_wake"]:
                 time.sleep(8)  # rede e shell voltam do sleep
                 change_if_allowed("acordou")
-        if cfg["enabled"] and cfg["interval_min"] > 0 and seconds_since_change() >= cfg["interval_min"] * 60:
+        if cfg["enabled"] and cfg.get("by_time") and load_json(STATE, {}).get("band") != current_band()[1]:
+            change_if_allowed("faixa do dia")
+        elif cfg["enabled"] and cfg["interval_min"] > 0 and seconds_since_change() >= cfg["interval_min"] * 60:
             change_if_allowed("tempo")
         if watcher.poll() is not None:
             sys.exit("dbus-monitor terminou")
@@ -476,6 +518,8 @@ def main():
         cmd_flush_reload()
     elif cmd == "peek-guard":
         cmd_peek_guard()
+    elif cmd == "lum":
+        cmd_lum()
     elif cmd == "meta":
         cmd_meta()
     elif cmd == "prefetch":
