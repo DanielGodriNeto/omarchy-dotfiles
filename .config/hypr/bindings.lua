@@ -62,6 +62,7 @@ end
 
 -- Alternar o layout do workspace (dwindle/rolagem/flutuante) desligado: sair do layout em rolagem derruba
 -- o Hyprland 0.56.2. Religar quando o Hyprland for atualizado (0.57+): apague estas duas linhas.
-hl.unbind("SUPER + L")
+-- SUPER + L bloqueia a tela, como no Windows (o antigo "alternar layout" estava desligado por causa do crash).
+o.rebind("SUPER + L", "Lock system", "omarchy-system-lock")
 hl.unbind("SUPER + ALT + L")
 o.bind("SUPER + grave", "Workspaces overview", { panel = "mancato.overview" })
