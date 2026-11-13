@@ -424,7 +424,11 @@ PanelWindow {
     property point pressPoint
     property bool dragged: false
     readonly property int windowCount: modelData ? modelData.windows.length : 0
-    property real pulse: 1
+    // Launch bounce height, and the direction "away from the dock edge".
+    property real bounce: 0
+    readonly property int bounceSign: window.position === "bottom" || window.position === "right" ? -1 : 1
+    // Pressed on a click in the making, not on a drag (Slot.pressed is any press).
+    readonly property bool sinking: appSlot.pressed && !appSlot.dragged && !appSlot.lifted
 
     // Slots between where the dragged app was and where it would land step
     // aside to make room; the dragged one follows the pointer.
@@ -505,7 +509,7 @@ PanelWindow {
     }
 
     // Running apps are drawn in full, pinned ones that are not running faded,
-    // and one that is starting pulses between the two.
+    // and one that is starting bounces (elementary-style) in full colour.
     Image {
       x: window.iconInset
       y: window.iconInset
@@ -517,15 +521,16 @@ PanelWindow {
       asynchronous: true
       smooth: true
       mipmap: true
-      opacity: appSlot.launching ? appSlot.pulse : (appSlot.windowCount > 0 ? 1 : window.idleOpacity)
+      opacity: appSlot.launching || appSlot.windowCount > 0 ? 1 : window.idleOpacity
       transform: Translate {
-        x: window.vertical ? 0 : appSlot.displayedShift
-        y: window.vertical ? appSlot.displayedShift : 0
+        x: window.vertical ? appSlot.bounceSign * appSlot.bounce : appSlot.displayedShift
+        y: window.vertical ? appSlot.displayedShift : appSlot.bounceSign * appSlot.bounce
       }
-      scale: appSlot.lifted || appSlot.hovered ? 1.15 : 1
+      // A press sinks the icon a little (0.92); hover and drag lift it.
+      scale: appSlot.sinking ? 0.92 : (appSlot.lifted || appSlot.hovered ? 1.15 : 1)
       transformOrigin: window.popOrigin
 
-      Behavior on scale { NumberAnimation { duration: Style.duration(120); easing.type: Easing.OutCubic } }
+      Behavior on scale { NumberAnimation { duration: Style.duration(appSlot.sinking ? 160 : 120); easing.type: Easing.OutCubic } }
     }
 
     // Dot under a running app, in the theme accent.
@@ -543,13 +548,16 @@ PanelWindow {
 
     // With animations off it holds still rather than spinning through
     // zero-length steps.
+    // Launch bounce: up half an icon in 200 ms, back down in 600 ms with a
+    // bounce, a short rest, repeat while the app is starting (elementary dock).
     SequentialAnimation {
       running: appSlot.launching && !Style.reduceMotion
       loops: Animation.Infinite
-      onRunningChanged: if (!running) appSlot.pulse = 1
+      onRunningChanged: if (!running) appSlot.bounce = 0
 
-      NumberAnimation { target: appSlot; property: "pulse"; from: 1; to: window.idleOpacity; duration: Style.duration(500); easing.type: Easing.InOutSine }
-      NumberAnimation { target: appSlot; property: "pulse"; to: 1; duration: Style.duration(500); easing.type: Easing.InOutSine }
+      NumberAnimation { target: appSlot; property: "bounce"; from: 0; to: window.iconSize * 0.5; duration: Style.duration(200); easing.type: Easing.InOutQuad }
+      NumberAnimation { target: appSlot; property: "bounce"; to: 0; duration: Style.duration(600); easing.type: Easing.OutBounce }
+      PauseAnimation { duration: Style.duration(200) }
     }
   }
 
