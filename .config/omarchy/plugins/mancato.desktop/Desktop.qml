@@ -1,6 +1,7 @@
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
+import Quickshell.Hyprland
 import QtQuick
 import qs.Commons
 import qs.Commons as Commons
@@ -47,6 +48,7 @@ Scope {
   Variants {
     model: Quickshell.screens
     delegate: PanelWindow {
+      id: win
       required property var modelData
       screen: modelData
       color: "transparent"
@@ -57,6 +59,22 @@ Scope {
       anchors { top: true; bottom: true; left: true; right: true }
       mask: Region {}
 
+      // Relógio e legenda só aparecem com o workspace vazio: com janelas translúcidas
+      // (terminal com opacidade) eles apareciam por trás delas.
+      readonly property var monitor: Hyprland.monitorFor(screen)
+      readonly property int workspaceId: monitor && monitor.activeWorkspace ? monitor.activeWorkspace.id : -1
+      readonly property bool occupied: {
+        var tops = Hyprland.toplevels.values
+        for (var i = 0; i < tops.length; i++) {
+          var ws = tops[i].workspace
+          if (ws && ws.id === workspaceId) return true
+        }
+        return false
+      }
+      property real shown: occupied ? 0 : 1
+      Behavior on shown { NumberAnimation { duration: Style.duration(180); easing.type: Easing.OutCubic } }
+      visible: shown > 0.01
+
       Rectangle {
         anchors.horizontalCenter: parent.horizontalCenter
         y: parent.height * 0.2
@@ -64,10 +82,12 @@ Scope {
         height: clockColumn.implicitHeight + 36
         radius: Style.cornerRadius * 2
         color: Qt.alpha(Commons.Color.background, 0.68)
+        opacity: win.shown
       }
 
       Column {
         id: clockColumn
+        opacity: win.shown
         anchors.horizontalCenter: parent.horizontalCenter
         y: parent.height * 0.2 + 18
         spacing: 4
@@ -93,6 +113,7 @@ Scope {
 
       Rectangle {
         visible: root.caption !== ""
+        opacity: win.shown
         anchors.left: parent.left
         anchors.bottom: parent.bottom
         anchors.margins: 16
