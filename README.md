@@ -16,6 +16,7 @@ Paths mirror `$HOME` — copy the relevant files into place, or symlink them in.
 - **`.config/omarchy/plugins/mancato.dock/`** — clone do plugin `omarchy.dock` do Omarchy que mostra a dock em qualquer layout (não só em workspaces flutuantes), com auto-ocultar. Código derivado do Omarchy (MIT, © David Heinemeier Hansson); o clone não recebe as atualizações do original.
 - **`.config/omarchy/plugins/mancato.control-center/`** + **`.local/bin/control-center-state`** — painel de controle na barra (Wi-Fi, Bluetooth, luz noturna, energia, volume, brilho), feito com o kit `qs.Ui` do shell.
 - **`.local/bin/fastfetch-fit`** — fastfetch adaptativo ao tamanho do terminal; as cores seguem o acento do tema ativo.
+- **`.config/omarchy/themed/shell.toml.tpl`** — override do template de estilo do shell (menus, popups, notificações), derivado do template do Omarchy (MIT); segue as cores do tema ativo.
 - **`.config/starship.toml`** — prompt re-themed to match the active palette.
 - **`.local/bin/omarchy-toggle-widgets`** — focuses/unfocuses the dedicated widget workspace.
 - **`.local/bin/omarchy-cliamp-toggle-provider`** / **`omarchy-widget-cliamp-launch`** — switch the cliamp desktop widget between Spotify and a local radio playlist.

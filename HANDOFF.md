@@ -197,6 +197,29 @@ O usuário pediu "coloca na tela de temas ctrl+shift+super+espaço". Esse atalho
 - **Modo por horário:** a lógica foi conferida offline para 5 horas do dia (noite 0,16–0,36, entardecer 0,36–0,46, tarde 0,46–0,52, manhã 0,52–0,78 de luminosidade; ~46 pinturas por faixa). Só a manhã tinha sido vista numa troca real.
 - **Carrossel `Ctrl+Shift+Super+Espaço`:** o tema Pintura aparece em foco com a pintura atual como miniatura.
 
+## Rodada de 4 sessões paralelas (13/11): o que entrou
+
+| Frente | Resultado | Arquivos |
+|---|---|---|
+| Dock | Fundo arredondado nas cores do tema, ícone 40 px, ponto de app aberto, 8 apps fixados (foot, Nautilus, Chromium, VS Code, Obsidian, Claude, Spotify, Discord) | `.config/omarchy/plugins/mancato.dock/*`, `dock.pinned` no `shell.json` |
+| Painel de controle | Tile "Não perturbar" (nativo: `omarchy-toggle-notification-silencing`, estado por `omarchy-shell notifications isDnd`), navegação por teclado, anel de foco no acento | `Panel.qml`, `.local/bin/control-center-state` |
+| Menus e notificações | Override do template do shell: fundo elevado, bordas finas, espaçamento maior, fonte base 13 px. Vale para **todos** os temas | `.config/omarchy/themed/shell.toml.tpl` |
+| GTK e Nautilus | `gtk.css` mínimo (acento e fundos da pintura) gerado a cada troca; Nautilus aberto repinta na hora | `write_gtk_css()` em `painting-theme` |
+
+Fatos novos:
+- **Plugin de terceiros não recebe `shellConfig` nem `appLibrary`.** Por isso `dock.pinned` nunca era lido e fixados não abriam. Solução: ler o `shell.json` com `FileView` no `Dock.qml` e declarar `"menu"` em `kinds` no manifest (libera o `appLibrary`).
+- **Recarga automática não reaplica `Dock.qml`, `DockWindow.qml` nem um `Panel.qml` novo:** exige `omarchy restart shell` (pisca a barra por instantes).
+- **O raio de canto dos popups e notificações não é chave do `shell.toml`:** o shell copia `decoration:rounding` do Hyprland (hoje 8, em `looknfeel.lua`). Cantos de 12–14 px só mudando esse arquivo; cuidado: mexer no `looknfeel.lua` dispara reload do Hyprland (veja o crash do layout em rolagem).
+- `omarchy-theme-set-glass` também escreve em `~/.config/gtk-4.0/gtk.css` e pode conflitar com o symlink do hook `10-sync-gtk4-css`.
+- `painting-theme` grava `~/.config/gtk-3.0/gtk.css` direto (único efeito fora do tema); apagar esse arquivo e `themes/pintura/gtk.css` desfaz.
+- Backups: `~/.config/omarchy/plugin-backups/`, `~/.config/omarchy/shell.json.bak.dock.*`, `~/.local/state/cc-backups/`, `~/.local/bin/painting-theme.bak.1794572661`.
+
+## Crash do Hyprland 0.56.2 (investigado em 13/11)
+
+- **Evidência:** SIGSEGV às 08:38:58, na pilha `refreshProp → updateWorkspaceLayouts → ~CScrollingAlgorithm → ~CScrollingFullscreenHandler`: o próprio Hyprland derruba a sessão ao **desmontar** um layout em rolagem (ex.: tirar um workspace de rolagem para dwindle com `SUPER+L`). Sem quadros do plugin `hyprbars`. Sem relato igual no upstream; o 0.57.2 corrige outros crashes e um problema de tela cheia na rolagem, mas não confirmei este.
+- **Estado:** o layout em rolagem continua como padrão; workspace 1 tem override para dwindle (arquivo em `~/.local/state/omarchy/workspace-layouts/`), workspaces 9 e `special:qconsole` estão em rolagem.
+- **Contorno proposto e NÃO aplicado:** voltar `general.layout` para `dwindle` **sem recarregar** (desligar `misc.disable_autoreload` por `hyprctl eval`, editar `looknfeel.lua`, reiniciar a sessão), porque o reload desmontaria a rolagem dos workspaces 9 e `qconsole`. Alternativa: manter rolagem e evitar `SUPER+L`.
+
 ## Ainda não verificado (13/11)
 
 - Cliques nos tiles e sliders do painel; arrastar apps na dock; pastas do Nautilus com a variante Yaru nova; troca real nas faixas tarde, entardecer e noite.
