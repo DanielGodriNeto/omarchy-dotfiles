@@ -1,6 +1,6 @@
 # Handoff: personalização do Hyprland/Omarchy
 
-Ponto de partida para continuar a personalização em outra sessão. Escrito em 12/11/2026.
+Ponto de partida para continuar a personalização em outra sessão. Escrito em 12/11/2026, atualizado em 13/11/2026.
 Sistema: Omarchy 4.0 (Arch + Hyprland 0.56.2, config em **Lua**), shell Quickshell (`omarchy-shell`), notebook com eDP-1 espelhado em HDMI-A-1, terminal foot (imagens em sixel).
 
 ## Objetivo do usuário
@@ -21,6 +21,11 @@ Deixar o desktop mais bonito e profissional, com a fluidez do NixOS e do macOS, 
 | Troca automática: ao ligar, ao acordar da suspensão e por tempo (padrão 3 h, mínimo 5 min entre trocas) | `.config/systemd/user/painting-theme.service` | roda `painting-theme daemon` |
 | Miniatura da pintura atual na tela de temas (`CTRL+SHIFT+SUPER+ESPAÇO`) | `preview.png` do tema `pintura` | gerado em `apply()` |
 | fastfetch com pintura no lugar do logo, escolhida pela cor do tema | `.local/bin/fastfetch-art` | chamado pela função `fastfetch` do `.bashrc` |
+| Cores do fastfetch seguem o tema (títulos e barras no acento, chaves neutras, ANSI do tema) | `.local/bin/fastfetch-fit` | lê `~/.local/state/omarchy/current/theme/colors.toml`; sem as chaves, volta às cores antigas |
+| Modo por horário do dia (noite/manhã/tarde/entardecer = quartis de luminosidade) | `painting-theme` + `.local/share/fastfetch-art/lum.json` | opção `by_time` (ligada), item no menu da Pintura; troca ao mudar de faixa; `painting-theme lum` recalcula |
+| Dock em qualquer layout, auto-ocultar embaixo | `.config/omarchy/plugins/mancato.dock/` | clone de `omarchy.dock` sem a regra "só flutuante"; `omarchy-dock autohide on/off` |
+| Painel de controle (Wi-Fi, Bluetooth, luz noturna, energia, volume, brilho) | `.config/omarchy/plugins/mancato.control-center/` + `.local/bin/control-center-state` | botão na barra, lado direito |
+| Pastas/ícones (Yaru) e acento do GTK seguem o acento da pintura | `painting-theme` (`icon_and_accent`) | grava `icons.theme` no tema; `gsettings accent-color` |
 | Compatibilidade com o peek desktop (`SUPER+D`) | shim + vigia em `painting-theme` | veja "Peek" abaixo |
 
 ## Como o tema por pintura funciona
@@ -59,11 +64,10 @@ O `omarchy theme set` recarrega o Hyprland (reload explícito **e** reload autom
 ## Ideias para continuar (por prioridade)
 
 1. Conferir os "não verificados" acima, principalmente a miniatura no carrossel e uma suspensão longa (horas).
-2. Cores do texto do fastfetch seguirem o acento da pintura (hoje o `fastfetch-fit` usa cores fixas pêssego/azul).
-3. Modo por horário do dia (pinturas claras de manhã, noturnas à noite) como opção do menu.
+2. ~~Cores do fastfetch~~ feito. 3. ~~Modo por horário~~ feito.
 4. Pílula flutuante de verdade para a barra: não há opção nativa; só via QML próprio (`Pill.qml` já dá o formato por widget).
-5. Estilo do dock (`dock.pinned`, `autohide` em `shell.json`) e visual da central de controle/launcher.
-6. Cor de pastas do Nautilus e ícones (Yaru-*) acompanhando o acento da pintura.
+5. ~~Dock e central de controle~~ feitos (plugins próprios). Faltam: apps fixados na dock (`dock.pinned`), "Não perturbe" no painel, restilizar a dock.
+6. ~~Pastas/ícones~~ feito.
 7. Tela de login/Plymouth com a pintura atual.
 8. Um overview de workspaces próprio (QML no shell) já que o hyprexpo está descartado.
 
@@ -173,3 +177,19 @@ O usuário pediu "coloca na tela de temas ctrl+shift+super+espaço". Esse atalho
 2. Antes de mexer: `systemctl --user is-active painting-theme.service`, `painting-theme status`, `hyprctl configerrors`.
 3. Testar trocas só com `systemd-run --user --collect -p KillMode=process painting-theme next`.
 4. Para qualquer mudança visual nova: **mockup primeiro**, depois aplicar com backup, validar (`hyprctl reload` + `hyprctl configerrors`) e commitar em commits pequenos (sem atribuição de IA).
+
+## Sessão de 13/11/2026: decisões e fatos novos
+
+- Atalho `Ctrl+Shift+Super+Espaço`: decidido manter como carrossel de temas (o tema Pintura aparece nele).
+- O Omarchy **não tem** central de controle; o painel é um plugin nosso (`Panel` + `KeyboardPanel` do kit `qs.Ui`).
+- A dock nativa só aparece em workspaces flutuantes (`DockWindow.qml`, `shown`). Para alterar, **clonar** com `omarchy plugin clone omarchy.dock` (sobrevive às atualizações); não editar `/usr/share/omarchy/`. O clone reescreveu `shell.json`.
+- `omarchy theme set` lê `icons.theme` do tema (nome de variante Yaru) e define o ícone do GNOME; o acento do GTK (`accent-color`) não é tocado pelo Omarchy, então o `painting-theme` o define.
+- O `colors.toml` do tema **ativo** fica em `~/.local/state/omarchy/current/theme/`, não em `~/.config/omarchy/`.
+- Plugins em `~/.config/omarchy/plugins/` recarregam ao salvar; `omarchy plugin enable <id> right` põe o widget na barra; `omarchy-shell <id> open|close` abre o painel por IPC.
+- Screenshot para conferir visual: `grim -o eDP-1 arquivo.png`.
+- Backups novos: `~/.config/omarchy/shell.json.bak3.*`, `~/.local/state/painting-theme/painting-theme.bak6` e `.bak7`, `~/.local/bin/fastfetch-fit.bak.*`.
+
+## Ainda não verificado (13/11)
+
+- Clicar nos tiles/sliders do painel e abri-lo pelo botão da barra; auto-ocultar e arrastar apps na dock; pastas no Nautilus com a variante Yaru; item "Pinturas por horário" no menu; a faixa seguinte do modo por horário (só vi a manhã).
+- Volume no painel apareceu em 0 (o `wpctl` reportou 0,00).
