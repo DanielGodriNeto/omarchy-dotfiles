@@ -206,10 +206,22 @@ Item {
   property real drawnHeight: targetHeight
 
 
+  // Swipe sideways to dismiss: the card follows the pointer, fades as it goes,
+  // and leaves once it is past a third of its width. It eases back otherwise.
+  property real swipe: 0
+  property bool swipeActive: false
+  readonly property real swipeLimit: cardWidth * 0.35
+  Behavior on swipe {
+    enabled: !card.swipeActive
+    NumberAnimation { duration: Style.duration(200); easing.type: Easing.OutCubic }
+  }
+  transform: Translate { x: card.swipe }
+
   y: scene ? scene.at(row.key, "y") : 0
   z: place.z
   scale: scene ? scene.at(row.key, "scale") : 1
-  opacity: place.hidden ? 0 : (scene ? scene.at(row.key, "opacity") : 1)
+  opacity: (place.hidden ? 0 : (scene ? scene.at(row.key, "opacity") : 1))
+           * (1 - Math.min(1, Math.abs(card.swipe) / (card.cardWidth * 0.9)))
   transformOrigin: Item.Top
 
   // `visible` is deliberately unbound: anything derived from layout output
@@ -582,6 +594,7 @@ Item {
     // Under the content (z: -1) so buttons get their clicks first; anything
     // that does not accept a click falls through to here.
     MouseArea {
+      id: cardArea
       anchors.fill: parent
       z: -1
       // Not hoverEnabled: a card taking hover would starve the deck's region.
@@ -589,7 +602,49 @@ Item {
       acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
       cursorShape: Qt.PointingHandCursor
 
+      // The pointer is read in scene coordinates: this area moves with the card
+      // while it is swiped, so its own x would feed back into the drag.
+      property real pressSceneX: 0
+      property bool swiped: false
+
+      function sceneX(mouse) { return cardArea.mapToItem(null, mouse.x, mouse.y).x }
+
+      onPressed: function(mouse) {
+        cardArea.swiped = false
+        if (mouse.button === Qt.LeftButton) cardArea.pressSceneX = cardArea.sceneX(mouse)
+      }
+
+      onPositionChanged: function(mouse) {
+        if (!(pressedButtons & Qt.LeftButton)) return
+        var dx = cardArea.sceneX(mouse) - cardArea.pressSceneX
+        if (!cardArea.swiped && Math.abs(dx) < Style.space(8)) return
+        cardArea.swiped = true
+        card.swipeActive = true
+        card.swipe = dx
+      }
+
+      onReleased: function(mouse) {
+        if (!cardArea.swiped) return
+        card.swipeActive = false
+        if (Math.abs(card.swipe) >= card.swipeLimit) {
+          card.swipe = (card.swipe < 0 ? -1 : 1) * card.cardWidth
+          card.dismissed()
+        } else {
+          card.swipe = 0
+        }
+      }
+
+      onCanceled: {
+        card.swipeActive = false
+        card.swipe = 0
+      }
+
       onClicked: function(mouse) {
+        // A swipe ends in a release over the card, which is not a click on it.
+        if (cardArea.swiped) {
+          cardArea.swiped = false
+          return
+        }
         if (mouse.button === Qt.LeftButton) card.activated()
         else card.dismissed()
       }
