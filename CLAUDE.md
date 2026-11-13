@@ -7,7 +7,7 @@ Repositório PÚBLICO de personalizações do Omarchy/Hyprland (caminhos espelha
 - Wikimedia Commons: espaçar chamadas de API em 2,5 s ou mais. Met Museum e Art Institute têm anti-bot: não contornar.
 - Nunca edite `/usr/share/omarchy/`; tudo vai em `~/.config` e `~/.local`. Faça backup antes de editar arquivo vivo.
 - Plugin QML novo ou alterado exige `omarchy restart shell`. Salvar `looknfeel.lua`, `input.lua` ou `bindings.lua` recarrega o Hyprland.
-- **Nunca ative o layout `scrolling` nem alterne layouts de workspace:** o Hyprland 0.56.2 crasha ao desmontá-lo (padrão agora é dwindle). Religar só após atualizar para 0.57+.
+- **Nunca ative o layout `scrolling` nem alterne layouts de workspace** (inclui `omarchy hyprland workspace layout default scrolling` e as opções de layout do menu do Omarchy: elas fazem todo workspace novo abrir em rolagem e quebram o tiling em divisões): o Hyprland 0.56.2 crasha ao desmontá-lo (padrão agora é dwindle). Religar só após atualizar para 0.57+.
 - Repositório público: sem segredos, tokens, e-mail ou caminhos privados; escaneie o diff antes de cada commit. Commits pequenos, sem atribuição de IA.
 - Mudança visual: mockup primeiro, depois aplicar com backup, validar (`hyprctl configerrors`) e só então commitar.
 
