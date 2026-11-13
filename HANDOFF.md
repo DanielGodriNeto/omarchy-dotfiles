@@ -45,16 +45,20 @@ O `omarchy theme set` recarrega o Hyprland (reload explícito **e** reload autom
 - Não editar nada em `/usr/share/omarchy/`; tudo em `~/.config` ou `~/.local`.
 - A revisão do acervo foi por miniaturas: pode haver uma pintura que não seja natureza. Para tirar, acrescente o arquivo (ex.: `123.jpg`) em `exclude.txt`.
 
+## Verificado em 13/11/2026
+
+- **Troca ao acordar:** suspensão real (`s2idle`, ~2 s) seguida de troca automática ~6 s depois ("trocando pintura (acordou)" no journal do serviço). Tema, política de cor do Chromium e `theme-set.log` ficaram corretos. Só testei suspensão curta. A troca espera ~8 s após acordar (rede e shell voltarem) e respeita `min_gap_min` (5 min).
+- **Troca por tempo:** rodou sozinha às 07:13, sem erro.
+
 ## Não verificado
 
 - Clique no botão, menu da barra e a galeria `choose` não foram vistos funcionando na tela (só os comandos).
-- Troca ao **acordar da suspensão** nunca foi testada com uma suspensão real.
 - Tela de bloqueio e notificações seguem o tema por contrato (`shell.toml`), mas não foram conferidas visualmente.
 - A miniatura do tema "Pintura" no carrossel `CTRL+SHIFT+SUPER+ESPAÇO` foi gerada, mas não a vi no carrossel.
 
 ## Ideias para continuar (por prioridade)
 
-1. Conferir os "não verificados" acima, principalmente suspensão e a miniatura no carrossel.
+1. Conferir os "não verificados" acima, principalmente a miniatura no carrossel e uma suspensão longa (horas).
 2. Cores do texto do fastfetch seguirem o acento da pintura (hoje o `fastfetch-fit` usa cores fixas pêssego/azul).
 3. Modo por horário do dia (pinturas claras de manhã, noturnas à noite) como opção do menu.
 4. Pílula flutuante de verdade para a barra: não há opção nativa; só via QML próprio (`Pill.qml` já dá o formato por widget).
