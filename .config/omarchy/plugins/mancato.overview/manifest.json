@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "mancato.overview",
+  "name": "Workspaces overview",
+  "version": "1.0.0",
+  "author": "mancato",
+  "description": "Full-screen grid of workspaces with their windows",
+  "kinds": ["overlay"],
+  "keepLoaded": true,
+  "entryPoints": { "overlay": "Overview.qml" }
+}

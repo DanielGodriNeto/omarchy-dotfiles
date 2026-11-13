@@ -214,6 +214,14 @@ Fatos novos:
 - `painting-theme` grava `~/.config/gtk-3.0/gtk.css` direto (único efeito fora do tema); apagar esse arquivo e `themes/pintura/gtk.css` desfaz.
 - Backups: `~/.config/omarchy/plugin-backups/`, `~/.config/omarchy/shell.json.bak.dock.*`, `~/.local/state/cc-backups/`, `~/.local/bin/painting-theme.bak.1794572661`.
 
+## Segunda rodada (13/11, depois do reinício)
+
+- **Cantos das janelas em 12 px** (`rounding = 12`); menus e notificações herdam.
+- **Overview de workspaces próprio:** plugin QML `.config/omarchy/plugins/mancato.overview/` com miniaturas reais por `ScreencopyView` (Quickshell). Abre por `SUPER + grave` (o `SUPER + TAB` já é "próximo workspace") ou `omarchy-shell shell toggle mancato.overview`. Setas/hjkl navegam, Enter ou clique ativa, Esc fecha. O atalho **não** foi testado com teclado real (o `wtype` não aciona binds de comando); o IPC foi. Mudanças no QML exigem `omarchy restart shell`.
+- **Spotify:** o hook `20-sync-spicetify-theme` fechava o Spotify a cada troca (`pkill` + `spicetify apply`). `omarchy-spicetify-sync` agora só aplica com o Spotify fechado e, se estiver aberto, deixa o marcador `~/.local/state/omarchy/spicetify-apply-pending`; aceita `--no-apply`. O aspecto no app não foi visto.
+- **starship:** usa cores ANSI do terminal (segue a pintura sem hook). **VS Code** já seguia o tema.
+- **graphify:** tentativa de indexar o repositório parou por falta de aprovação para instalar `graphifyy` (PyPI, Graphify-Labs, `uv tool install graphifyy`). `graphify-out/` fica ignorado em `.git/info/exclude`.
+
 ## Crash do Hyprland 0.56.2 (investigado em 13/11)
 
 - **Evidência:** SIGSEGV às 08:38:58, na pilha `refreshProp → updateWorkspaceLayouts → ~CScrollingAlgorithm → ~CScrollingFullscreenHandler`: o próprio Hyprland derruba a sessão ao **desmontar** um layout em rolagem (ex.: tirar um workspace de rolagem para dwindle com `SUPER+L`). Sem quadros do plugin `hyprbars`. Sem relato igual no upstream; o 0.57.2 corrige outros crashes e um problema de tela cheia na rolagem, mas não confirmei este.

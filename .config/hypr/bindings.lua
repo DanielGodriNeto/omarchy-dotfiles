@@ -64,3 +64,4 @@ end
 -- o Hyprland 0.56.2. Religar quando o Hyprland for atualizado (0.57+): apague estas duas linhas.
 hl.unbind("SUPER + L")
 hl.unbind("SUPER + ALT + L")
+o.bind("SUPER + grave", "Workspaces overview", { panel = "mancato.overview" })

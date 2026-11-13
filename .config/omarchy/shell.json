@@ -148,6 +148,12 @@
   "plugins": [
     {
       "id": "mancato.dock"
+    },
+    {
+      "id": "io.voxtype.settings"
+    },
+    {
+      "id": "mancato.overview"
     }
   ],
   "version": 1
