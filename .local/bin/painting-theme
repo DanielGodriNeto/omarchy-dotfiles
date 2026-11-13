@@ -1,0 +1,496 @@
+#!/usr/bin/env python3
+"""Tema Omarchy gerado a partir de uma pintura: wallpaper + paleta do sistema.
+
+Uso:
+  painting-theme next            sorteia outra pintura e aplica
+  painting-theme pick <arquivo>  aplica uma pintura do acervo (ex.: 253.jpg)
+  painting-theme status          estado atual em JSON (usado pela barra)
+  painting-theme config [chave valor]
+  painting-theme daemon          troca no login, ao acordar e por tempo
+"""
+import colorsys, fcntl, functools, json, os, random, shutil, subprocess, sys, time, urllib.parse, urllib.request
+
+HOME = os.path.expanduser("~")
+ART = f"{HOME}/.local/share/fastfetch-art"
+CFG_DIR = f"{HOME}/.config/painting-theme"
+STATE_DIR = f"{HOME}/.local/state/painting-theme"
+CFG = f"{CFG_DIR}/config.json"
+STATE = f"{STATE_DIR}/state.json"
+THEME = "pintura"
+THEME_DIR = f"{HOME}/.config/omarchy/themes/{THEME}"
+UA = "painting-theme-personal/1.0"
+DEFAULTS = {"enabled": True, "interval_min": 180, "on_boot": True, "on_wake": True, "min_gap_min": 5}
+MIN_WIDTH = 1500   # abaixo disso o wallpaper ficaria borrado; tenta outra pintura
+RECENT = 15
+
+
+def load_json(path, default):
+    try:
+        with open(path) as f:
+            return {**default, **json.load(f)} if isinstance(default, dict) else json.load(f)
+    except (OSError, ValueError):
+        return dict(default) if isinstance(default, dict) else default
+
+
+def save_json(path, data):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    tmp = f"{path}.tmp"
+    with open(tmp, "w") as f:
+        json.dump(data, f, indent=1)
+    os.replace(tmp, path)
+
+
+# ---------- paleta ----------
+
+def hsl_hex(h, s, l):
+    r, g, b = colorsys.hls_to_rgb((h % 360) / 360, max(0, min(1, l)), max(0, min(1, s)))
+    return "#%02x%02x%02x" % (round(r * 255), round(g * 255), round(b * 255))
+
+
+def sample_pixels(path):
+    raw = subprocess.run(["magick", f"{path}[0]", "-resize", "64x64!", "-depth", "8", "rgb:-"],
+                         capture_output=True, check=True).stdout
+    return [tuple(raw[i:i + 3]) for i in range(0, len(raw) - 2, 3)]
+
+
+def hue_clusters(pixels):
+    """Faixas de matiz de 15 graus ponderadas por cor viva. Retorna [(peso, h, s, l)] do maior para o menor."""
+    bins = {}
+    for r, g, b in pixels:
+        h, l, s = colorsys.rgb_to_hls(r / 255, g / 255, b / 255)
+        if s < 0.22 or l < 0.15 or l > 0.92:
+            continue
+        k = int(h * 360 // 15)
+        w = s * (1 - abs(l - 0.55))
+        a = bins.setdefault(k, [0.0, 0.0, 0.0, 0.0, 0.0])
+        a[0] += w; a[1] += (h * 360) * w; a[2] += s * w; a[3] += l * w
+    out = [(a[0], a[1] / a[0], a[2] / a[0], a[3] / a[0]) for a in bins.values() if a[0] > 0]
+    return sorted(out, reverse=True)
+
+
+def circ_dist(a, b):
+    return abs((a - b + 180) % 360 - 180)
+
+
+ANSI_HUES = {"red": 8, "orange": 28, "yellow": 48, "green": 125, "cyan": 180, "blue": 215, "magenta": 300}
+
+
+def build_palette(pixels):
+    clusters = hue_clusters(pixels)
+    base_h = clusters[0][1] if clusters else 215.0
+    base_s = clusters[0][2] if clusters else 0.4
+    accent_h = base_h
+    accent_s = max(0.45, min(0.75, base_s))
+    c = {"mode": "dark"}
+    c["accent"] = hsl_hex(accent_h, accent_s, 0.68)
+    bg_s = max(0.2, min(0.38, base_s * 0.7))
+    c["background"] = hsl_hex(base_h, bg_s, 0.14)
+    c["dark_background"] = hsl_hex(base_h, bg_s, 0.105)
+    c["darker_background"] = hsl_hex(base_h, bg_s, 0.07)
+    c["lighter_background"] = hsl_hex(base_h, bg_s, 0.19)
+    c["selection"] = hsl_hex(base_h, bg_s + 0.05, 0.26)
+    c["muted"] = hsl_hex(base_h, bg_s, 0.32)
+    c["foreground"] = hsl_hex(base_h, 0.28, 0.88)
+    c["light_foreground"] = c["foreground"]
+    c["bright_foreground"] = hsl_hex(base_h, 0.35, 0.96)
+    c["dark_foreground"] = hsl_hex(accent_h, accent_s * 0.8, 0.5)
+    c["active_border_color"] = c["bright_foreground"]
+    c["active_tab_background"] = hsl_hex(accent_h, accent_s, 0.62)
+    for name, default_h in ANSI_HUES.items():
+        near = [cl for cl in clusters if circ_dist(cl[1], default_h) <= 40]
+        h = near[0][1] if near else default_h
+        # sem cor da pintura perto: aproxima o matiz padrao do tom do tema
+        if not near:
+            h = default_h + max(-15, min(15, ((accent_h - default_h + 180) % 360 - 180) * 0.2))
+        c[name] = hsl_hex(h, 0.5, 0.66)
+        c[f"bright_{name}"] = hsl_hex(h, 0.6, 0.76)
+    c["brown"] = hsl_hex(30, 0.28, 0.4)
+    return c
+
+
+def write_colors_toml(path, c):
+    keys = ["accent", "selection", "muted", "background", "dark_background", "darker_background",
+            "lighter_background", "foreground", "dark_foreground", "light_foreground", "bright_foreground",
+            "active_border_color", "active_tab_background", "red", "yellow", "orange", "green", "cyan",
+            "blue", "magenta", "brown", "bright_red", "bright_yellow", "bright_green", "bright_cyan",
+            "bright_blue", "bright_magenta"]
+    lines = [f'mode = "{c["mode"]}"', ""] + [f'{k} = "{c[k]}"' for k in keys if k in c]
+    with open(path, "w") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+# ---------- wallpaper ----------
+
+@functools.lru_cache(maxsize=16)
+def api_hires(title):
+    q = urllib.parse.urlencode({"action": "query", "format": "json", "titles": title, "prop": "imageinfo",
+                                "iiprop": "url|size", "iiurlwidth": 2560})
+    req = urllib.request.Request(f"https://commons.wikimedia.org/w/api.php?{q}", headers={"User-Agent": UA})
+    with urllib.request.urlopen(req, timeout=30) as r:
+        data = json.load(r)
+    info = next(iter(data["query"]["pages"].values()))["imageinfo"][0]
+    return info["thumburl"], info["width"], info["height"]
+
+
+def download(url, dest):
+    req = urllib.request.Request(url, headers={"User-Agent": UA})
+    with urllib.request.urlopen(req, timeout=90) as r, open(dest, "wb") as f:
+        f.write(r.read())
+
+
+def make_wallpaper(src, dest):
+    """Sempre 16:9 cheio: reduz ate cobrir a tela e corta no centro. Nunca deixa barras."""
+    subprocess.run(["magick", f"{src}[0]", "-resize", "2560x1440^", "-gravity", "center", "-extent", "2560x1440",
+                    "(", "-size", "2560x170", "gradient:#000000b8-#00000000", ")",
+                    "-gravity", "north", "-composite", "-quality", "92", dest], check=True)
+
+
+# ---------- aplicar ----------
+
+META = f"{ART}/meta.json"
+MIN_ASPECT = 1.25   # mais estreito que isso cortaria demais ao preencher a tela
+CACHE_DIR = f"{HOME}/.cache/painting-theme"
+
+
+def cmd_meta():
+    """Descobre largura, altura e URL grande de cada pintura (lotes de 40, devagar)."""
+    meta = load_json(META, {}) if os.path.exists(META) else {}
+    todo = [it for it in items() if it["f"] not in meta]
+    for i in range(0, len(todo), 40):
+        batch = todo[i:i + 40]
+        q = urllib.parse.urlencode({"action": "query", "format": "json", "titles": "|".join(b["t"] for b in batch),
+                                    "prop": "imageinfo", "iiprop": "url|size", "iiurlwidth": 2560})
+        req = urllib.request.Request(f"https://commons.wikimedia.org/w/api.php?{q}", headers={"User-Agent": UA})
+        try:
+            with urllib.request.urlopen(req, timeout=40) as r:
+                data = json.load(r)
+        except Exception as e:
+            print(f"lote {i} falhou: {e}", file=sys.stderr)
+            time.sleep(10)
+            continue
+        norm = {n["to"]: n["from"] for n in data["query"].get("normalized", [])}
+        by_title = {}
+        for page in data["query"]["pages"].values():
+            if "imageinfo" in page:
+                by_title[norm.get(page["title"], page["title"])] = page["imageinfo"][0]
+        for b in batch:
+            info = by_title.get(b["t"])
+            if info:
+                meta[b["f"]] = {"w": info["width"], "h": info["height"], "u": info["thumburl"]}
+        save_json(META, meta)
+        time.sleep(4)
+    print(f"{len(meta)} pinturas com metadados")
+
+
+def eligible():
+    """Pinturas de natureza com tamanho e proporcao bons para preencher a tela."""
+    meta = load_json(META, {}) if os.path.exists(META) else {}
+    good = [it for it in items() if it["f"] in meta and meta[it["f"]]["w"] >= MIN_WIDTH
+            and meta[it["f"]]["w"] / meta[it["f"]]["h"] >= MIN_ASPECT]
+    return good, meta
+
+
+def excluded():
+    try:
+        return set(open(f"{ART}/exclude.txt").read().split())
+    except OSError:
+        return set()
+
+
+def items():
+    skip, out = excluded(), []
+    for line in open(f"{ART}/index.jsonl"):
+        it = json.loads(line)
+        if it["f"] not in skip and os.path.exists(f"{ART}/{it['f']}"):
+            out.append(it)
+    return out
+
+
+def prepare(item, meta, dest):
+    """Baixa a versao grande e monta o wallpaper em dest. Sem rede, usa a miniatura."""
+    url = (meta.get(item["f"]) or {}).get("u")
+    src = f"{ART}/{item['f']}"
+    tmp = f"{CACHE_DIR}/hires.jpg"
+    os.makedirs(CACHE_DIR, exist_ok=True)
+    try:
+        if not url:
+            url = api_hires(item["t"])[0]
+        download(url, tmp)
+        src = tmp
+    except Exception as e:
+        print(f"aviso: sem versao grande ({e})", file=sys.stderr)
+    make_wallpaper(src, dest)
+    if os.path.exists(tmp):
+        os.remove(tmp)
+
+
+def peek_state():
+    path = f"{os.environ.get('XDG_RUNTIME_DIR', '/tmp')}/omarchy-peek-desktop.json"
+    return path if os.path.exists(path) else None
+
+
+def peek_targets():
+    """Workspace vazio de cada monitor durante o peek: nome do monitor -> id."""
+    try:
+        mons = json.loads(subprocess.run(["hyprctl", "monitors", "-j"], capture_output=True, text=True).stdout)
+    except ValueError:
+        return {}
+    return {m["name"]: (1900 + i, m["activeWorkspace"]["id"]) for i, m in enumerate(mons, 1)}
+
+
+def reassert_peek():
+    """Devolve cada monitor ao workspace vazio do peek, se o reload o tirou de la."""
+    for name, (target, current) in peek_targets().items():
+        if current != target:
+            subprocess.run(["hyprctl", "dispatch", f'hl.dsp.focus({{ monitor = "{name}" }})'], capture_output=True)
+            subprocess.run(["hyprctl", "dispatch", f'hl.dsp.focus({{ workspace = "{target}" }})'], capture_output=True)
+
+
+def cmd_peek_guard(seconds=4):
+    """Escuta os eventos do Hyprland e, enquanto o peek estiver ativo, desfaz na hora qualquer saida dele."""
+    import select, socket
+    path = f"{os.environ['XDG_RUNTIME_DIR']}/hypr/{os.environ['HYPRLAND_INSTANCE_SIGNATURE']}/.socket2.sock"
+    sock = socket.socket(socket.AF_UNIX)
+    sock.connect(path)
+    deadline = time.time() + seconds
+    buf = ""
+    while time.time() < deadline:
+        if not select.select([sock], [], [], 0.2)[0]:
+            continue
+        data = sock.recv(4096).decode(errors="ignore")
+        if not data:
+            return
+        buf += data
+        lines = buf.split("\n")
+        buf = lines.pop()
+        if any(l.startswith(("workspace", "focusedmon", "activewindow")) for l in lines):
+            time.sleep(0.06)  # se foi voce saindo do peek (Super+D), o arquivo de estado some logo em seguida
+            if peek_state():
+                reassert_peek()
+
+
+def set_autoreload(enabled):
+    subprocess.run(["hyprctl", "eval", f"hl.config({{ misc = {{ disable_autoreload = {'false' if enabled else 'true'} }} }})"],
+                   capture_output=True)
+
+
+def cmd_flush_reload():
+    """Espera o peek terminar e so entao faz o reload do Hyprland que ficou pendente."""
+    lock = open(f"{CACHE_DIR}/flush.lock", "w")
+    try:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        return
+    pending = f"{CACHE_DIR}/reload.pending"
+    deadline = time.time() + 6 * 3600
+    while peek_state() and time.time() < deadline:
+        time.sleep(0.3)
+    time.sleep(0.4)  # deixa o Super+D terminar de devolver o workspace
+    set_autoreload(True)
+    if not os.path.exists(pending):
+        return
+    os.remove(pending)
+    before = {n: cur for n, (_, cur) in peek_targets().items()}
+    subprocess.run(["omarchy-restart-hyprctl"], capture_output=True)
+    time.sleep(0.3)
+    for name, ws in before.items():
+        now = peek_targets().get(name)
+        if now and now[1] != ws:
+            subprocess.run(["hyprctl", "dispatch", f'hl.dsp.focus({{ monitor = "{name}" }})'], capture_output=True)
+            subprocess.run(["hyprctl", "dispatch", f'hl.dsp.focus({{ workspace = "{ws}" }})'], capture_output=True)
+
+
+def apply(item, ready=None):
+    os.makedirs(f"{THEME_DIR}/backgrounds", exist_ok=True)
+    meta = load_json(META, {}) if os.path.exists(META) else {}
+    wall = f"{THEME_DIR}/backgrounds/{item['f'][:-4]}-{time.strftime('%Y%m%d%H%M%S')}.jpg"
+    if ready and os.path.exists(ready):
+        shutil.move(ready, wall)
+    else:
+        prepare(item, meta, wall)
+    colors = build_palette(sample_pixels(f"{ART}/{item['f']}"))
+    write_colors_toml(f"{THEME_DIR}/colors.toml", colors)
+    # miniatura do tema na tela de temas (Ctrl+Shift+Super+Espaco): mostra a pintura atual
+    subprocess.run(["magick", wall, "-resize", "1280x720", f"{THEME_DIR}/preview.png"], check=False)
+    for old in os.listdir(f"{THEME_DIR}/backgrounds"):
+        if f"{THEME_DIR}/backgrounds/{old}" != wall:
+            os.remove(f"{THEME_DIR}/backgrounds/{old}")
+    env = None
+    if peek_state():
+        # no peek: o reload do Hyprland e adiado (shim) ate voce sair; o vigia fica como rede de seguranca
+        env = {**os.environ, "PATH": f"{HOME}/.local/share/painting-theme/shim:{os.environ['PATH']}"}
+        os.makedirs(CACHE_DIR, exist_ok=True)
+        # o Hyprland tambem recarrega sozinho quando os arquivos do tema mudam: desliga isso ate sair do peek
+        set_autoreload(False)
+        subprocess.Popen([sys.argv[0], "flush-reload"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                         start_new_session=True)
+        subprocess.Popen([sys.argv[0], "peek-guard"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                         start_new_session=True)
+        time.sleep(0.3)  # o vigia precisa estar escutando antes
+    subprocess.run(["omarchy", "theme", "set", THEME], check=False, env=env)
+    state = load_json(STATE, {"recent": []})
+    recent = ([item["f"]] + [r for r in state.get("recent", []) if r != item["f"]])[:RECENT]
+    save_json(STATE, {"recent": recent, "current": item["f"], "title": item["t"].removeprefix("File:"),
+                      "changed": int(time.time()), "accent": colors["accent"], "background": colors["background"]})
+
+
+def pick_pool():
+    good, _ = eligible()
+    state = load_json(STATE, {"recent": []})
+    recent = set(state.get("recent", []))
+    pool = [it for it in good if it["f"] not in recent] or good or items()
+    random.shuffle(pool)
+    return pool
+
+
+NEXT_JSON = f"{CACHE_DIR}/next.json"
+NEXT_JPG = f"{CACHE_DIR}/next.jpg"
+
+
+def cmd_prefetch():
+    """Deixa a proxima pintura baixada e cortada, para a troca ser instantanea."""
+    lock = open(f"{CACHE_DIR}/prefetch.lock", "w")
+    try:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        return
+    item = pick_pool()[0]
+    _, meta = eligible()
+    prepare(item, meta, NEXT_JPG)
+    save_json(NEXT_JSON, item)
+
+
+def start_prefetch():
+    subprocess.Popen([sys.argv[0], "prefetch"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                     start_new_session=True)
+
+
+def cmd_next():
+    ready = load_json(NEXT_JSON, {}) if os.path.exists(NEXT_JSON) else {}
+    if ready.get("f") and os.path.exists(NEXT_JPG):
+        os.remove(NEXT_JSON)
+        apply(ready, ready=NEXT_JPG)
+    else:
+        apply(pick_pool()[0])
+    start_prefetch()
+
+
+def cmd_pick(f):
+    it = next((i for i in items() if i["f"] == f), None)
+    if not it:
+        sys.exit(f"pintura {f} nao encontrada")
+    apply(it)
+
+
+# ---------- daemon ----------
+
+def seconds_since_change():
+    return time.time() - load_json(STATE, {}).get("changed", 0)
+
+
+_pending = None
+
+
+def change_if_allowed(reason):
+    cfg = load_json(CFG, DEFAULTS)
+    if not cfg["enabled"] or seconds_since_change() < cfg["min_gap_min"] * 60:
+        return
+    if peek_state():  # vendo o desktop (Super+D): espera sair do peek e troca depois
+        global _pending
+        _pending = reason
+        return
+    print(f"trocando pintura ({reason})", flush=True)
+    cmd_next()
+
+
+def cmd_daemon():
+    cfg = load_json(CFG, DEFAULTS)
+    if cfg["on_boot"]:
+        time.sleep(20)  # espera o shell subir
+        change_if_allowed("login")
+    watcher = subprocess.Popen(
+        ["dbus-monitor", "--system", "type='signal',interface='org.freedesktop.login1.Manager',member='PrepareForSleep'"],
+        stdout=subprocess.PIPE, text=True, bufsize=1)
+    import selectors
+    sel = selectors.DefaultSelector()
+    sel.register(watcher.stdout, selectors.EVENT_READ)
+    while True:
+        cfg = load_json(CFG, DEFAULTS)
+        global _pending
+        if _pending and not peek_state():
+            reason, _pending = _pending, None
+            change_if_allowed(reason)
+        for _ in sel.select(timeout=30):
+            line = watcher.stdout.readline()
+            if "boolean false" in line and cfg["on_wake"]:
+                time.sleep(8)  # rede e shell voltam do sleep
+                change_if_allowed("acordou")
+        if cfg["enabled"] and cfg["interval_min"] > 0 and seconds_since_change() >= cfg["interval_min"] * 60:
+            change_if_allowed("tempo")
+        if watcher.poll() is not None:
+            sys.exit("dbus-monitor terminou")
+
+
+def cmd_choose():
+    """Abre o seletor de imagens do Omarchy com as pinturas e aplica a escolhida."""
+    import re, shutil
+    gal = f"{STATE_DIR}/gallery"
+    shutil.rmtree(gal, ignore_errors=True)
+    os.makedirs(gal)
+    for it in eligible()[0]:
+        name = re.sub(r"[^\w .,'()-]", "", it["t"].removeprefix("File:").rsplit(".", 1)[0])[:60].strip()
+        os.symlink(f"{ART}/{it['f']}", f"{gal}/{name} [{it['f'][:-4]}].jpg")
+    out = subprocess.run(["omarchy", "menu", "images", "--print-name", "--filterable", "--show-labels",
+                          "--lazy-thumbnails", gal], capture_output=True, text=True).stdout.strip()
+    m = re.search(r"\[(\d+)\]", out)
+    if m:
+        cmd_pick(f"{m.group(1)}.jpg")
+
+
+def cmd_status():
+    s = load_json(STATE, {"recent": []})
+    s["config"] = load_json(CFG, DEFAULTS)
+    print(json.dumps(s))
+
+
+def cmd_config(args):
+    cfg = load_json(CFG, DEFAULTS)
+    if len(args) == 2:
+        k, v = args
+        if k not in DEFAULTS:
+            sys.exit(f"chave desconhecida: {k}")
+        cfg[k] = (v.lower() in ("1", "true", "on", "yes")) if isinstance(DEFAULTS[k], bool) else int(v)
+        save_json(CFG, cfg)
+    print(json.dumps(cfg))
+
+
+def main():
+    os.makedirs(STATE_DIR, exist_ok=True)
+    cmd = sys.argv[1] if len(sys.argv) > 1 else "status"
+    if cmd in ("next", "pick"):
+        lock = open(f"{STATE_DIR}/lock", "w")
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        cmd_next() if cmd == "next" else cmd_pick(sys.argv[2])
+    elif cmd == "flush-reload":
+        os.makedirs(CACHE_DIR, exist_ok=True)
+        cmd_flush_reload()
+    elif cmd == "peek-guard":
+        cmd_peek_guard()
+    elif cmd == "meta":
+        cmd_meta()
+    elif cmd == "prefetch":
+        os.makedirs(CACHE_DIR, exist_ok=True)
+        cmd_prefetch()
+    elif cmd == "choose":
+        cmd_choose()
+    elif cmd == "status":
+        cmd_status()
+    elif cmd == "config":
+        cmd_config(sys.argv[2:])
+    elif cmd == "daemon":
+        cmd_daemon()
+    else:
+        sys.exit(__doc__)
+
+
+main()

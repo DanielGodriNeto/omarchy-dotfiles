@@ -1,0 +1,13 @@
+[Unit]
+Description=Troca automatica da pintura do tema (login, acordar, tempo)
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/painting-theme daemon
+Restart=on-failure
+RestartSec=20
+
+[Install]
+WantedBy=graphical-session.target

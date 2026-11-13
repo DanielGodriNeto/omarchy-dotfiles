@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Baixa as miniaturas (640 px) do acervo de pinturas listadas em ~/.local/share/fastfetch-art/index.jsonl.
+# As imagens nao ficam no git: so a lista (titulo + URL do Wikimedia Commons), a exclusao e os metadados.
+# Ritmo educado (o Commons bloqueia pedidos rapidos). Roda de novo para completar o que faltou.
+set -u
+D="$HOME/.local/share/fastfetch-art"; UA="painting-theme-personal/1.0"
+[[ -f $D/index.jsonl ]] || { echo "sem $D/index.jsonl"; exit 1; }
+while read -r l; do
+  f=$(jq -r .f <<<"$l"); u=$(jq -r .u <<<"$l")
+  [[ -s $D/$f ]] && continue
+  curl -s -m 40 -A "$UA" -o "$D/$f" "$u" && magick identify "$D/$f" >/dev/null 2>&1 || rm -f "$D/$f"
+  sleep 0.8
+done < "$D/index.jsonl"
+echo "$(ls "$D"/*.jpg 2>/dev/null | wc -l) imagens em $D"

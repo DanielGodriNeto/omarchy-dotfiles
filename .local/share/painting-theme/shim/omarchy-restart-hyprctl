@@ -1,0 +1,8 @@
+#!/bin/bash
+# Usado so pelo painting-theme durante o peek desktop (Super+D): adia o reload do Hyprland, que
+# faria as janelas aparecerem por um instante. O reload roda quando o peek termina.
+if [[ -f "${XDG_RUNTIME_DIR:-/tmp}/omarchy-peek-desktop.json" ]]; then
+  touch "$HOME/.cache/painting-theme/reload.pending"
+  exit 0
+fi
+exec /usr/share/omarchy/bin/omarchy-restart-hyprctl "$@"

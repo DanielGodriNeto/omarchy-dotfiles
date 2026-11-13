@@ -1,0 +1,78 @@
+#!/usr/bin/env python3
+"""Pinta o logo do fastfetch com uma pintura de natureza no tom do tema Omarchy (sorteada dentro de uma faixa de cores)."""
+import json, math, os, random, subprocess, sys, tomllib
+
+HOME = os.path.expanduser("~")
+ART = f"{HOME}/.local/share/fastfetch-art"
+CUR = f"{HOME}/.local/state/omarchy/current"
+OUT = f"{HOME}/.config/fastfetch/logo.png"
+CACHE = f"{HOME}/.cache/fastfetch-art"
+POOL = 25      # tamanho da faixa de candidatas
+RECENT = 8     # nao repete as ultimas N
+
+def lab(rgb):
+    lin = [c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4 for c in rgb]
+    r, g, b = lin
+    x = (0.4124 * r + 0.3576 * g + 0.1805 * b) / 0.95047
+    y = 0.2126 * r + 0.7152 * g + 0.0722 * b
+    z = (0.0193 * r + 0.1192 * g + 0.9505 * b) / 1.08883
+    f = lambda t: t ** (1 / 3) if t > 0.008856 else 7.787 * t + 16 / 116
+    fx, fy, fz = f(x), f(y), f(z)
+    return (116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz))
+
+def lch(l):
+    return l[0], math.hypot(l[1], l[2]), math.degrees(math.atan2(l[2], l[1])) % 360
+
+def profile(path):
+    """Histograma de matiz (36 faixas) dos pixels com cor de verdade, mais luminosidade media. Pixel cinza nao conta como cor."""
+    raw = subprocess.run(["magick", f"{path}[0]", "-resize", "32x32!", "-depth", "8", "rgb:-"], capture_output=True).stdout
+    hist, lsum, n = [0.0] * 36, 0.0, 0
+    for i in range(0, len(raw) - 2, 3):
+        l, c, h = lch(lab([v / 255 for v in raw[i:i + 3]]))
+        lsum += l; n += 1
+        if c >= 10: hist[int(h // 10) % 36] += 1
+    return {"hist": [x / n for x in hist], "L": lsum / n}
+
+def theme_accent():
+    try:
+        h = tomllib.load(open(f"{CUR}/theme/colors.toml", "rb"))["accent"].lstrip("#")
+        return lch(lab([int(h[i:i + 2], 16) / 255 for i in (0, 2, 4)]))
+    except (OSError, KeyError, ValueError):
+        return None
+
+def score(p, hue):
+    """Maior e melhor: fatia de pixels coloridos perto do matiz do tema, com luminosidade media."""
+    near = sum(v for i, v in enumerate(p["hist"]) if abs((i * 10 + 5 - hue + 180) % 360 - 180) <= 45)
+    return near - abs(p["L"] - 42) * 0.004
+
+def main():
+    os.makedirs(CACHE, exist_ok=True)
+    acc = theme_accent()
+    hue = float(os.environ["FFART_HUE"]) if "FFART_HUE" in os.environ else (acc[2] if acc else 230.0)
+    cf = f"{CACHE}/colors3.json"
+    colors = json.load(open(cf)) if os.path.exists(cf) else {}
+    try:
+        skip = set(open(f"{ART}/exclude.txt").read().split())
+    except OSError:
+        skip = set()
+    items = [it for it in map(json.loads, open(f"{ART}/index.jsonl")) if it["f"] not in skip and os.path.exists(f"{ART}/{it['f']}")]
+    for it in items:
+        if it["f"] not in colors: colors[it["f"]] = profile(f"{ART}/{it['f']}")
+    json.dump(colors, open(cf, "w"))
+    rf = f"{CACHE}/recent.json"
+    recent = json.load(open(rf)) if os.path.exists(rf) else []
+    ranked = sorted(items, key=lambda it: -score(colors[it["f"]], hue))
+    good = [it for it in ranked if score(colors[it["f"]], hue) >= 0.15][:POOL + RECENT] or ranked[:POOL]
+    cand = [it for it in good if it["f"] not in recent][:POOL] or good
+    if "--stats" in sys.argv:
+        print("acima do limite:", sum(score(colors[it["f"]], hue) >= 0.15 for it in ranked))
+    pick = random.choice(cand)
+    subprocess.run(["magick", f"{ART}/{pick['f']}", "-gravity", "center", "-resize", "800x800^", "-extent", "800x800", OUT], check=True)
+    json.dump(([pick["f"]] + recent)[:RECENT], open(rf, "w"))
+    if "--quiet" not in sys.argv:
+        print(f"matiz alvo {hue:.0f} | {pick['t'].removeprefix('File:')}")
+    if "--stats" in sys.argv:
+        for it in ranked[:POOL]:
+            print(f"  {it['f']} azul={score(colors[it['f']], hue):.2f} L{colors[it['f']]['L']:.0f}  {it['t'][5:60]}")
+
+main()
