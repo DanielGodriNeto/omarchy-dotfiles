@@ -25,15 +25,21 @@ hl.config({
 hl.config({
   decoration = {
     rounding = 12,
+    -- 2.0 = circular corner; ~2.5 = macOS-like continuous curve (squircle).
+    rounding_power = 2.5,
 
     -- Dim unfocused windows (0.0 = no dim, 1.0 = fully dimmed).
     dim_inactive = true,
     dim_strength = 0.15,
 
+    -- Soft, slightly dropped shadow (COSMIC/elementary style); inactive windows sit lower.
     shadow = {
       enabled = true,
-      range = 12,
+      range = 20,
       render_power = 3,
+      offset = { 0, 5 },
+      color = "rgba(00000073)",
+      color_inactive = "rgba(00000057)",
     },
   },
 })
@@ -65,11 +71,13 @@ hl.config({
 
 hl.curve("fluid", { type = "bezier", points = { { 0.22, 1 }, { 0.36, 1 } } })
 hl.curve("fluidOut", { type = "bezier", points = { { 0.4, 0 }, { 0.6, 1 } } })
+-- easeOutExpo (elementary): fast start, long settle. Only for opening windows.
+hl.curve("expoOut", { type = "bezier", points = { { 0.16, 1 }, { 0.3, 1 } } })
 
 hl.animation({ leaf = "global", enabled = true, speed = 3, bezier = "fluid" })
 hl.animation({ leaf = "windows", enabled = true, speed = 3, bezier = "fluid" })
-hl.animation({ leaf = "windowsIn", enabled = true, speed = 2.6, bezier = "fluid", style = "popin 94%" })
-hl.animation({ leaf = "windowsOut", enabled = true, speed = 1.8, bezier = "fluidOut", style = "popin 94%" })
+hl.animation({ leaf = "windowsIn", enabled = true, speed = 2.6, bezier = "expoOut", style = "popin 70%" })
+hl.animation({ leaf = "windowsOut", enabled = true, speed = 1.8, bezier = "fluidOut", style = "popin 85%" })
 hl.animation({ leaf = "windowsMove", enabled = true, speed = 3, bezier = "fluid" })
 hl.animation({ leaf = "border", enabled = true, speed = 3, bezier = "fluid" })
 hl.animation({ leaf = "fade", enabled = true, speed = 2.4, bezier = "fluid" })
