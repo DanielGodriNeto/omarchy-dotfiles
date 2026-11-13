@@ -37,3 +37,4 @@ Regra: toda ideia nova do usuário vira um arquivo em `ideias/NNN-slug.md` e uma
 | [Spotify com capas e Discord leve (Dorion)](ideias/031-spotify-capas-e-discord-dorion.md) | Feito (falta escolher o tema no Dorion e ver) |
 | [Brave: nova aba transparente](ideias/032-brave-nova-aba-transparente.md) | Substituído pela 033 |
 | [Brave: nova aba com o papel de parede](ideias/033-brave-nova-aba-papel-de-parede.md) | Feito (confirmado no Brave) |
+| [Acervo ampliado e mapa de gosto](ideias/034-acervo-oriental-historico-e-gosto.md) | Em andamento (falta o gosto do usuário nas folhas) |
