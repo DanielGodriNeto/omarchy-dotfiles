@@ -13,6 +13,9 @@ Paths mirror `$HOME` — copy the relevant files into place, or symlink them in.
 - **`.config/omarchy/shell.json`** — bar layout wiring the modules above into the Quickshell bar.
 - **`.local/bin/painting-theme`**, **`painting-theme-fetch`**, **`fastfetch-art`** + `.config/omarchy/bar/modules/painting.qml`, `.config/omarchy/extensions/omarchy-menu.jsonc`, `.config/systemd/user/painting-theme.service`, `.local/share/painting-theme/shim/` — tema por pintura: wallpaper e cores do sistema a partir de uma pintura de natureza (domínio público), botão e menu na barra, troca ao ligar, ao acordar e por tempo, e o fastfetch com a pintura. O acervo de imagens não está no git, só a lista em `.local/share/fastfetch-art/`.
 - **`.config/hypr/input.lua`** — gestos do touchpad (3 dedos: workspace; 4 dedos: layout em rolagem).
+- **`.config/omarchy/plugins/mancato.dock/`** — clone do plugin `omarchy.dock` do Omarchy que mostra a dock em qualquer layout (não só em workspaces flutuantes), com auto-ocultar. Código derivado do Omarchy (MIT, © David Heinemeier Hansson); o clone não recebe as atualizações do original.
+- **`.config/omarchy/plugins/mancato.control-center/`** + **`.local/bin/control-center-state`** — painel de controle na barra (Wi-Fi, Bluetooth, luz noturna, energia, volume, brilho), feito com o kit `qs.Ui` do shell.
+- **`.local/bin/fastfetch-fit`** — fastfetch adaptativo ao tamanho do terminal; as cores seguem o acento do tema ativo.
 - **`.config/starship.toml`** — prompt re-themed to match the active palette.
 - **`.local/bin/omarchy-toggle-widgets`** — focuses/unfocuses the dedicated widget workspace.
 - **`.local/bin/omarchy-cliamp-toggle-provider`** / **`omarchy-widget-cliamp-launch`** — switch the cliamp desktop widget between Spotify and a local radio playlist.
