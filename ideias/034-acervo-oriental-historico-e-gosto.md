@@ -1,6 +1,6 @@
 # Acervo ampliado (orientais, históricas, variedade) e mapa de gosto
 
-- **Estado:** Em andamento (acervo ampliado e ordenado; falta o usuário marcar os temas das folhas para semear o gosto)
+- **Estado:** Feito (acervo ampliado e gosto semeado em 13/11/2026; refinar com Gostei/Não gostei no uso)
 - **Origem:** pedido do usuário (13/11/2026)
 
 ## O que entrou
@@ -13,3 +13,7 @@
 ## Mapa de gosto
 - O sorteio já aprende por categoria (`cat`), artista e gênero a partir de Gostei/Não gostei (`painting-theme taste`), com 30% de exploração.
 - Para acelerar: 4 folhas de amostra (58 temas, uma pintura por tema, numeradas) enviadas ao usuário; as respostas viram avaliações semente em `~/.config/painting-theme/taste.json` (só dimensões categoria, artista e gênero, sem cor). Mapeamento número → pintura em scratchpad da sessão (`sheets/mapping.json`).
+
+## Gosto semeado (13/11/2026)
+- O usuário respondeu às 58 amostras: gostou da grande maioria (muito: 9, 25, 28-30, 39, 44-46, 50, 51, 55-57); não gostou de 23, 27, 37 e, mais ou menos, de 47; 54 foi "muito escura"; 31 e 58 neutros.
+- 74 avaliações semente gravadas em `~/.config/painting-theme/taste.json` (marcadas `seed`): gostar = 1 avaliação por tema, "muito" = 2 (46 = 3), não gostar = 2, "não muito" = 1, só dimensões tema e artista (e `lum` para a escura). Backup `taste.json.bak.*` ao lado. Resultado: favorece Aivazovsky, Friedrich, Bierstadt e pores do sol do século 19; evita Hodler, Remington, "pores do sol" genéricos e Kuhnert.
