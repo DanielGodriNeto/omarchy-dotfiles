@@ -12014,5 +12014,13 @@
   "regiao:europa",
   "traco:dramatico",
   "traco:pictorico"
+ ],
+ "2167.jpg": [
+  "epoca:s1900",
+  "estilo:historico",
+  "estilo:realismo",
+  "regiao:russia",
+  "traco:dramatico",
+  "traco:realista"
  ]
 }
