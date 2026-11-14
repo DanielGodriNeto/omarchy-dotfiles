@@ -26,3 +26,7 @@
 - `painting-theme niches` lista as combinações de etiquetas mais frequentes no que você gostou em relação ao acervo (lift). `painting-theme taste` mostra os pesos.
 - **Primeiro retrato do nicho** (76 avaliações, quase todas semente de uma amostra por tema, então ainda é fraco): pintura do século 19, realista, dramática e serena, romantismo e hudson-river, paisagens europeias e americanas, céus e pores do sol; evita simbolismo/art nouveau (Hodler), oeste (Remington) e imagens muito escuras. Refina com o uso do Gostei/Não gostei.
 - Sementes migradas: avaliações semente ganharam as facetas de etiqueta (likes: estilo, traço, tema, região, época; dislikes: só estilo e tema, para um não gostar de Remington não punir "realista"). Backups `taste.json.bak.tags.*`.
+
+## Importar uma imagem sua (13/11/2026)
+- O acervo só busca no Wikimedia Commons, e obras com direitos autorais (ex.: "Eternal Russia", 1988, de Ilya Glazunov, falecido em 2017) não estão lá. Novo comando: `painting-theme add <arquivo> "Título" "Artista" [like]`. Copia a imagem grande para `~/.local/share/fastfetch-art/local/` (fora do git), gera a miniatura, registra no `index.jsonl` com `u: "local:NNN.jpg"` (sem caminhos pessoais), calcula tamanho, luz, cores e etiquetas (artista na tabela `ARTIST_TAGS`; Glazunov: realismo, histórico, dramático, Rússia, século 20) e, com `like`, já grava o Gostei.
+- Testado com uma imagem sintética e removido em seguida. Eternal Russia espera o arquivo do usuário (298 × 598 cm, proporção 2:1).

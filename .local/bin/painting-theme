@@ -13,6 +13,7 @@ Uso:
   painting-theme tags            etiqueta cada pintura (estilos, tracos, tema, regiao, epoca) usando o Commons
   painting-theme niches          combinacoes de etiquetas que mais aparecem no que voce gostou
   painting-theme quick like|dislike  avalia com um clique; Nao gostei troca, e Gostei tambem se config rate_mode estiver ligado
+  painting-theme add <arq> "Titulo" "Artista" [like]  importa uma imagem sua para o acervo (e ja da Gostei)
   painting-theme rating          nota da pintura atual (1, -1 ou 0)
   painting-theme unrate          remove a nota da pintura atual
   painting-theme taste           resume o gosto aprendido
@@ -143,6 +144,9 @@ def api_hires(title):
 
 
 def download(url, dest):
+    if url.startswith("local:"):  # imagem importada com `painting-theme add`: copia do acervo local
+        shutil.copyfile(f"{ART}/local/{url[6:]}", dest)
+        return
     req = urllib.request.Request(url, headers={"User-Agent": UA})
     with urllib.request.urlopen(req, timeout=90) as r, open(dest, "wb") as f:
         f.write(r.read())
@@ -507,6 +511,7 @@ ARTIST_TAGS = {
     "Charles Marion Russell": "oeste|realista|americas|s1900",
     "Katsushika Hokusai": "ukiyo-e|estilizado|japao|s1800",
     "Utagawa Hiroshige": "ukiyo-e|estilizado,sereno|japao|s1800",
+    "Ilya Glazunov": "realismo,historico|dramatico,realista|russia|s1900",
     "James McNeill Whistler": "tonalismo,impressionismo|pictorico,sereno|americas|s1800",
 }
 # Etiquetas de categorias inteiras do acervo.
@@ -953,6 +958,45 @@ def cmd_quick(verb):
         cmd_next()
 
 
+def cmd_add(args):
+    """Importa uma imagem sua para o acervo: add <arquivo> "Titulo" "Artista" [like]. A imagem grande fica em acervo/local (fora do git)."""
+    if len(args) < 3:
+        sys.exit('uso: painting-theme add <arquivo> "Titulo" "Artista" [like]')
+    path, title, artist = os.path.expanduser(args[0]), args[1], args[2]
+    like = len(args) > 3 and args[3] == "like"
+    if not os.path.exists(path):
+        sys.exit(f"arquivo nao encontrado: {path}")
+    ident = subprocess.run(["magick", "identify", "-format", "%w %h", f"{path}[0]"], capture_output=True, text=True)
+    if ident.returncode != 0:
+        sys.exit("nao consegui ler a imagem")
+    w, h = map(int, ident.stdout.split())
+    import re
+    top = 0
+    for line in open(f"{ART}/index.jsonl"):
+        m = re.match(r"(\d+)\.jpg$", json.loads(line)["f"]) if line.strip() else None
+        top = max(top, int(m.group(1)) if m else 0)
+    f = f"{top + 1:03d}.jpg"
+    os.makedirs(f"{ART}/local", exist_ok=True)
+    subprocess.run(["magick", f"{path}[0]", "-resize", "4096x4096>", "-quality", "95", f"{ART}/local/{f}"], check=True)
+    subprocess.run(["magick", f"{path}[0]", "-resize", "960x960>", "-quality", "88", f"{ART}/{f}"], check=True)
+    rec = {"t": f"File:{title}.jpg", "u": f"local:{f}", "c": f"Paintings by {artist}", "f": f}
+    with open(f"{ART}/index.jsonl", "a", encoding="utf-8") as fh:
+        fh.write(json.dumps(rec, ensure_ascii=False, separators=(",", ":")) + "\n")
+    meta = load_json(META, {}) if os.path.exists(META) else {}
+    meta[f] = {"w": w, "h": h, "u": f"local:{f}"}
+    save_json(META, meta)
+    cmd_lum()
+    cmd_features()
+    tags = load_json(TAGS, {}) if os.path.exists(TAGS) else {}
+    tags[f] = sorted(tags_from_artist(artist) | tags_from_text(title))
+    save_json(TAGS, tags)
+    if like:
+        data = load_json(TASTE, {"ratings": {}})
+        data["ratings"][f] = {"v": 1, "dims": [d for k, ds in DIMS.items() if k != "qualidade" for d in ds], "ts": int(time.time())}
+        save_json(TASTE, data)
+    print(json.dumps({"f": f, "w": w, "h": h, "liked": like}))
+
+
 def cmd_rating():
     """Nota da pintura atual: 1 (gostei), -1 (nao gostei) ou 0."""
     cur = load_json(STATE, {}).get("current")
@@ -1003,6 +1047,8 @@ def main():
         cmd_niches()
     elif cmd == "quick" and len(sys.argv) > 2 and sys.argv[2] in ("like", "dislike"):
         cmd_quick(sys.argv[2])
+    elif cmd == "add":
+        cmd_add(sys.argv[2:])
     elif cmd == "rating":
         cmd_rating()
     elif cmd == "unrate":
