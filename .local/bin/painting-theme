@@ -12,6 +12,7 @@ Uso:
   painting-theme like|dislike [motivos]  avalia a pintura atual (motivos: cores genero estilo autor qualidade imagem)
   painting-theme tags            etiqueta cada pintura (estilos, tracos, tema, regiao, epoca) usando o Commons
   painting-theme niches          combinacoes de etiquetas que mais aparecem no que voce gostou
+  painting-theme quick like|dislike  avalia com um clique; Nao gostei troca, e Gostei tambem se config rate_mode estiver ligado
   painting-theme rating          nota da pintura atual (1, -1 ou 0)
   painting-theme unrate          remove a nota da pintura atual
   painting-theme taste           resume o gosto aprendido
@@ -24,10 +25,11 @@ CFG_DIR = f"{HOME}/.config/painting-theme"
 STATE_DIR = f"{HOME}/.local/state/painting-theme"
 CFG = f"{CFG_DIR}/config.json"
 STATE = f"{STATE_DIR}/state.json"
+SEEN = f"{STATE_DIR}/seen.json"   # tudo que ja foi mostrado como papel de parede (usado pelo modo avaliacao rapida)
 THEME = "pintura"
 THEME_DIR = f"{HOME}/.config/omarchy/themes/{THEME}"
 UA = "painting-theme-personal/1.0"
-DEFAULTS = {"enabled": True, "interval_min": 180, "on_boot": True, "on_wake": True, "min_gap_min": 5, "by_time": False}
+DEFAULTS = {"enabled": True, "interval_min": 180, "on_boot": True, "on_wake": True, "min_gap_min": 5, "by_time": False, "rate_mode": False}
 MIN_WIDTH = 1500   # abaixo disso o wallpaper ficaria borrado; tenta outra pintura
 RECENT = 15
 
@@ -391,6 +393,10 @@ def apply(item, ready=None):
     apply_gnome_accent(gtk_accent)
     state = load_json(STATE, {"recent": []})
     recent = ([item["f"]] + [r for r in state.get("recent", []) if r != item["f"]])[:RECENT]
+    seen = set(load_json(SEEN, [])) if os.path.exists(SEEN) else set()
+    if item["f"] not in seen:
+        seen.add(item["f"])
+        save_json(SEEN, sorted(seen))
     save_json(STATE, {"recent": recent, "current": item["f"], "title": item["t"].removeprefix("File:"),
                       "changed": int(time.time()), "band": current_band()[1], "accent": colors["accent"], "background": colors["background"]})
 
@@ -806,7 +812,17 @@ def pick_pool():
     if load_json(CFG, DEFAULTS).get("by_time"):
         base = band_pool(good) or good
     pool = [it for it in base if it["f"] not in recent] or base or items()
+    if load_json(CFG, DEFAULTS).get("rate_mode"):
+        pool = new_only(pool) or pool
     return weighted_order(pool)
+
+
+def new_only(pool):
+    """Modo avaliacao rapida: so pinturas que voce nunca avaliou nem viu como papel de parede."""
+    rated = set(load_json(TASTE, {"ratings": {}}).get("ratings", {}))
+    seen = set(load_json(SEEN, [])) if os.path.exists(SEEN) else set()
+    fresh = [it for it in pool if it["f"] not in rated and it["f"] not in seen]
+    return fresh or [it for it in pool if it["f"] not in rated]
 
 
 NEXT_JSON = f"{CACHE_DIR}/next.json"
@@ -834,6 +850,8 @@ def start_prefetch():
 def cmd_next():
     ready = load_json(NEXT_JSON, {}) if os.path.exists(NEXT_JSON) else {}
     stale = load_json(CFG, DEFAULTS).get("by_time") and ready.get("band") != current_band()[1]
+    if load_json(CFG, DEFAULTS).get("rate_mode") and ready.get("f") and not new_only([{"f": ready["f"]}]):
+        stale = True  # modo avaliacao rapida: a pre-carregada ja foi avaliada ou vista
     if ready.get("f") and os.path.exists(NEXT_JPG) and not stale:
         os.remove(NEXT_JSON)
         apply(ready, ready=NEXT_JPG)
@@ -927,6 +945,14 @@ def cmd_status():
     print(json.dumps(s, ensure_ascii=False))
 
 
+def cmd_quick(verb):
+    """Avalia a pintura atual com um clique. Nao gostei sempre troca; com o modo avaliacao rapida ligado, Gostei tambem."""
+    value = 1 if verb == "like" else -1
+    cmd_rate(value, [])
+    if value == -1 or load_json(CFG, DEFAULTS).get("rate_mode"):
+        cmd_next()
+
+
 def cmd_rating():
     """Nota da pintura atual: 1 (gostei), -1 (nao gostei) ou 0."""
     cur = load_json(STATE, {}).get("current")
@@ -975,6 +1001,8 @@ def main():
         cmd_tags()
     elif cmd == "niches":
         cmd_niches()
+    elif cmd == "quick" and len(sys.argv) > 2 and sys.argv[2] in ("like", "dislike"):
+        cmd_quick(sys.argv[2])
     elif cmd == "rating":
         cmd_rating()
     elif cmd == "unrate":

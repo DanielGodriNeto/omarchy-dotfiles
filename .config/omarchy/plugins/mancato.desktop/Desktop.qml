@@ -24,19 +24,14 @@ Scope {
   readonly property int rating: ratings[current] ? (ratings[current].v || 0) : 0
   readonly property string tastePath: Quickshell.env("HOME") + "/.config/painting-theme/taste.json"
 
+  // One click: rates, and "painting-theme quick" also switches painting (always on dislike;
+  // on like too while the quick rating mode is on in the paintings menu).
   function rate(action) {
-    rateProc.after = action === "dislike"
-    rateProc.command = ["painting-theme", action]
+    rateProc.command = ["painting-theme", "quick", action]
     if (!rateProc.running) rateProc.running = true
   }
 
-  Process {
-    id: rateProc
-    property bool after: false
-    onRunningChanged: if (!running && after) { after = false; nextProc.running = true }
-  }
-
-  Process { id: nextProc; command: ["painting-theme", "next"] }
+  Process { id: rateProc }
 
   FileView {
     id: tasteFile

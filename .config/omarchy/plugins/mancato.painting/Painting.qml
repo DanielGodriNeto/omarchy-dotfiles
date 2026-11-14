@@ -21,6 +21,7 @@ Item {
   property string genre: ""
   property bool byTime: false
   property bool clockOn: true       // big clock on the empty desktop (desktop-clock)
+  property bool rateMode: false     // quick rating mode: Gostei also switches painting
   property int myRating: 0          // 1, -1 or 0
   property string stage: "idle"     // idle | like | dislike
   property var picked: []           // reason ids chosen in the current stage
@@ -80,10 +81,9 @@ Item {
 
   function confirmRating() {
     var verb = root.stage === "like" ? "like" : "dislike"
-    var args = ["painting-theme", verb].concat(root.picked)
     root.stage = "idle"
-    rateProc.command = args
-    rateProc.after = verb === "dislike"
+    rateProc.command = ["painting-theme", "quick", verb]   // switches by itself when it should
+    rateProc.after = false
     rateProc.running = true
   }
 
@@ -114,6 +114,7 @@ Item {
           root.artist = (s.features && s.features.artist) || (s.features && s.features.cat) || ""
           root.genre = (s.features && s.features.genre) || ""
           root.byTime = !!(s.config && s.config.by_time)
+          root.rateMode = !!(s.config && s.config.rate_mode)
           root.myRating = s.rating ? s.rating.v : 0
           root.previewStamp++
         } catch (e) {}
@@ -317,6 +318,14 @@ Item {
             label: "Relógio no desktop"
             on: root.clockOn
             onClicked: if (!clockToggleProc.running) clockToggleProc.running = true
+          }
+          Chip {
+            label: "Avaliação rápida"
+            on: root.rateMode
+            onClicked: {
+              configProc.command = ["painting-theme", "config", "rate_mode", root.rateMode ? "off" : "on"]
+              configProc.running = true
+            }
           }
           Chip {
             label: "Por horário"
