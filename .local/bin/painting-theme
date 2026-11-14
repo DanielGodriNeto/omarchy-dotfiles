@@ -10,6 +10,8 @@ Uso:
   painting-theme lum             calcula a luminosidade das pinturas (modo por horario)
   painting-theme features        calcula as cores dominantes das pinturas (base do gosto)
   painting-theme like|dislike [motivos]  avalia a pintura atual (motivos: cores genero estilo autor qualidade imagem)
+  painting-theme tags            etiqueta cada pintura (estilos, tracos, tema, regiao, epoca) usando o Commons
+  painting-theme niches          combinacoes de etiquetas que mais aparecem no que voce gostou
   painting-theme taste           resume o gosto aprendido
 """
 import colorsys, fcntl, functools, json, os, random, shutil, subprocess, sys, time, urllib.parse, urllib.request
@@ -154,6 +156,7 @@ def make_wallpaper(src, dest):
 META = f"{ART}/meta.json"
 LUM = f"{ART}/lum.json"
 FEATURES = f"{ART}/features.json"
+TAGS = f"{ART}/tags.json"        # arquivo -> etiquetas fixas (estilo, traco, tema, regiao, epoca); ver cmd_tags
 TASTE = f"{CFG_DIR}/taste.json"
 MIN_ASPECT = 1.25   # mais estreito que isso cortaria demais ao preencher a tela
 CACHE_DIR = f"{HOME}/.cache/painting-theme"
@@ -427,13 +430,149 @@ def band_pool(good, hour=None):
 
 # ---------- gosto (feedback) ----------
 # Cada avaliacao ensina so as dimensoes marcadas. "imagem" (defeito da foto) tira a pintura sem ensinar nada.
-DIMS = {"cores": ("hue", "lum"), "genero": ("genre",), "estilo": ("cat",), "autor": ("artist",), "qualidade": ("q",)}
+DIMS = {"cores": ("hue", "lum", "tags:paleta", "tags:luz"), "genero": ("genre", "tags:tema"),
+        "estilo": ("cat", "tags:estilo", "tags:traco"), "autor": ("artist", "tags:regiao", "tags:epoca"), "qualidade": ("q",)}
 EXPLORE = 0.3     # fracao dos sorteios que busca o desconhecido
 GENRES = [("sunset", ("sunset", "sunrise", "dusk")), ("mountain", ("mountain", "alps", "alpine", "peak")),
           ("desert", ("desert",)), ("western", ("western", "cowboy", "outlaw", "frontier", "remington", "russell", "old west")),
           ("winter", ("winter", "snow")), ("sea", ("sea", "marine", "ocean", "coast", "ship")),
           ("water", ("lilies", "river", "lake", "waterfall")), ("forest", ("forest", "wood", "tree")),
           ("portrait", ("portrait",)), ("stilllife", ("still life", "still-life", "flowers", "sunflower"))]
+
+# Etiquetas por artista: estilos (varios) | tracos | regioes | epoca. Um quadro pode ter varios estilos.
+ARTIST_TAGS = {
+    "Caspar David Friedrich": "romantismo,simbolismo|dramatico,sereno|europa|s1800",
+    "Joseph Mallord William Turner": "romantismo|dramatico,pictorico|europa|s1800",
+    "John Constable": "romantismo,realismo|sereno,realista|europa|s1800",
+    "Eugène Delacroix": "romantismo,orientalismo,historico|dramatico,pictorico|europa|s1800",
+    "Ivan Aivazovsky": "romantismo,realismo|dramatico,realista|russia|s1800",
+    "John Martin": "romantismo,fantasia|dramatico|europa|s1800",
+    "Samuel Palmer": "romantismo,simbolismo|sereno,estilizado|europa|s1800",
+    "Hans Gude": "romantismo,realismo|sereno,realista|nordica|s1800",
+    "Alexandre Calame": "romantismo,realismo|dramatico,realista|europa|s1800",
+    "Joseph Wright of Derby": "romantismo|dramatico,realista|europa|s1700",
+    "Frederic Edwin Church": "hudson-river,romantismo|dramatico,realista|americas|s1800",
+    "Albert Bierstadt": "hudson-river,romantismo|dramatico,realista|americas|s1800",
+    "Thomas Moran": "hudson-river,romantismo|dramatico,realista|americas|s1800",
+    "Thomas Cole": "hudson-river,romantismo|dramatico,realista|americas|s1800",
+    "Jasper Francis Cropsey": "hudson-river|sereno,realista|americas|s1800",
+    "Martin Johnson Heade": "hudson-river|sereno,realista|americas|s1800",
+    "Sanford Robinson Gifford": "hudson-river|sereno,realista|americas|s1800",
+    "Jean-Baptiste-Camille Corot": "barbizon|sereno,pictorico|europa|s1800",
+    "Charles-François Daubigny": "barbizon|sereno,pictorico|europa|s1800",
+    "Gustave Courbet": "realismo,barbizon|realista|europa|s1800",
+    "Claude Monet": "impressionismo|pictorico,sereno|europa|s1800",
+    "Camille Pissarro": "impressionismo|pictorico,sereno|europa|s1800",
+    "Alfred Sisley": "impressionismo|pictorico,sereno|europa|s1800",
+    "Eugène Boudin": "impressionismo,realismo|pictorico,sereno|europa|s1800",
+    "Joaquín Sorolla": "impressionismo|pictorico|europa|s1900",
+    "Vincent van Gogh": "pos-impressionismo,expressivo|pictorico,estilizado,dramatico|europa|s1800",
+    "Paul Cézanne": "pos-impressionismo|pictorico,estilizado|europa|s1800",
+    "Paul Gauguin": "pos-impressionismo,simbolismo|estilizado|europa|s1800",
+    "Paul Signac": "pos-impressionismo|pictorico,estilizado|europa|s1800",
+    "Henri Rousseau": "naif|estilizado|europa|s1900",
+    "Tom Thomson": "pos-impressionismo|pictorico,estilizado|americas|s1900",
+    "Emily Carr": "pos-impressionismo,expressivo|estilizado|americas|s1900",
+    "Ferdinand Hodler": "simbolismo,art-nouveau|estilizado|europa|s1900",
+    "Arnold Böcklin": "simbolismo,romantismo|dramatico,estilizado|europa|s1800",
+    "Gustav Klimt": "art-nouveau,simbolismo|estilizado|europa|s1900",
+    "Akseli Gallen-Kallela": "simbolismo,romantismo|estilizado,dramatico|nordica|s1900",
+    "Nicholas Roerich": "simbolismo,arte-asiatica|estilizado,sereno|russia,china|s1900",
+    "Pekka Halonen": "simbolismo,realismo|sereno|nordica|s1900",
+    "Ivan Shishkin": "realismo|realista,sereno|russia|s1800",
+    "Isaac Levitan": "realismo|realista,sereno|russia|s1800",
+    "Konstantin Korovin": "realismo,impressionismo|pictorico|russia|s1900",
+    "Ilya Yefimovich Repin": "realismo,historico|realista,dramatico|russia|s1800",
+    "Wilhelm Kuhnert": "realismo|realista|europa|s1900",
+    "Edward Hopper": "realismo|realista,sereno|americas|s1900",
+    "Winslow Homer": "realismo|realista,dramatico|americas|s1800",
+    "Frederick Judd Waugh": "realismo|realista,dramatico|americas|s1900",
+    "William Trost Richards": "realismo,hudson-river|realista,sereno|americas|s1800",
+    "Jan Matejko": "historico,romantismo|dramatico,pictorico|europa|s1800",
+    "Jacques-Louis David": "neoclassicismo,historico|realista,dramatico|europa|s1700",
+    "Vasily Vereshchagin": "orientalismo,historico,realismo|realista,dramatico|russia|s1800",
+    "Jean-Léon Gérôme": "orientalismo,historico,realismo|realista|europa|s1800",
+    "Jacob van Ruisdael": "barroco|realista,dramatico|europa|s1600",
+    "Meindert Hobbema": "barroco|realista,sereno|europa|s1600",
+    "Claude Lorrain": "barroco|sereno|europa|s1600",
+    "Frederic Remington": "oeste|realista,dramatico|americas|s1900",
+    "Charles Marion Russell": "oeste|realista|americas|s1900",
+    "Katsushika Hokusai": "ukiyo-e|estilizado|japao|s1800",
+    "Utagawa Hiroshige": "ukiyo-e|estilizado,sereno|japao|s1800",
+    "James McNeill Whistler": "tonalismo,impressionismo|pictorico,sereno|americas|s1800",
+}
+# Etiquetas de categorias inteiras do acervo.
+CATEGORY_TAGS = {
+    "Kanō school": "estilo:arte-asiatica traco:estilizado regiao:japao", "Rimpa school": "estilo:arte-asiatica traco:estilizado regiao:japao",
+    "Shan shui": "estilo:arte-asiatica traco:estilizado traco:sereno regiao:china tema:montanha",
+    "Landscape paintings of Japan": "estilo:arte-asiatica regiao:japao", "Paintings of Mount Fuji": "estilo:arte-asiatica regiao:japao tema:montanha",
+    "Dragons in art": "estilo:fantasia tema:mito traco:estilizado", "Paintings of dragons": "estilo:fantasia tema:mito traco:estilizado",
+    "Paintings of Saint George and the Dragon": "estilo:fantasia tema:mito estilo:historico",
+    "History paintings": "estilo:historico", "Orientalist paintings": "estilo:orientalismo",
+    "Hudson River School paintings": "estilo:hudson-river estilo:romantismo traco:realista regiao:americas",
+    "Paintings of cowboys": "estilo:oeste tema:cowboys traco:realista regiao:americas",
+}
+# Palavras das categorias (e do nome da categoria do acervo) -> etiqueta. Varias podem casar.
+TAG_KEYWORDS = [
+    ("tema:montanha", ("mountain", "alps", "alpine", "peak", "himalaya", "fuji")), ("tema:mar", ("seascape", "marine", " sea", "ocean", "ship", "coast", "harbor", "boat")),
+    ("tema:por-do-sol", ("sunset", "sunrise", "dusk", "twilight")), ("tema:deserto", ("desert",)), ("tema:inverno", ("winter", "snow", " ice")),
+    ("tema:floresta", ("forest", "tree", "wood", "jungle")), ("tema:agua-doce", ("river", "lake", "waterfall", "pond", "lilies")),
+    ("tema:arquitetura", ("temple", "church", "castle", "cathedral", "palace", "ruins", "architecture", "bridge")),
+    ("tema:mito", ("dragon", "saint george", "myth", "angel", "fantasy")), ("tema:animais", ("horse", "bird", "animal", "cattle", "lion", "dog")),
+    ("tema:flores", ("flower", "still life", "garden")), ("tema:batalha", ("battle", "war", "army")),
+    ("tema:cidade", ("city", "street", "venice", "town", "village")), ("tema:figuras", ("portrait", "woman", "women", "peasant", "people")),
+    ("tema:cowboys", ("cowboy", "western")),
+    ("estilo:hudson-river", ("hudson river", "luminism")), ("estilo:pos-impressionismo", ("post-impressionis",)),
+    ("estilo:impressionismo", ("impressionis",)), ("estilo:romantismo", ("romanticism",)), ("estilo:simbolismo", ("symbolism",)),
+    ("estilo:art-nouveau", ("art nouveau",)), ("estilo:realismo", ("realism", "realist", "naturalism")), ("estilo:barroco", ("baroque",)),
+    ("estilo:ukiyo-e", ("ukiyo-e",)), ("estilo:orientalismo", ("orientalis",)), ("estilo:neoclassicismo", ("neoclassic",)),
+    ("estilo:tonalismo", ("tonalism",)), ("estilo:barbizon", ("barbizon",)),
+    ("regiao:japao", ("japan", "japanese")), ("regiao:china", ("china", "chinese")), ("regiao:russia", ("russia", "ukrain")),
+    ("regiao:nordica", ("norway", "norwegian", "sweden", "swedish", "finland", "finnish", "denmark", "danish")),
+    ("regiao:americas", ("united states", "american", "canada", "canadian")),
+    ("regiao:europa", ("germany", "german", "france", "french", "netherlands", "dutch", "italy", "italian", "spain", "spanish", "england", "britain", "british", "switzerland", "poland", "austria")),
+]
+
+
+def tags_from_artist(artist):
+    spec = ARTIST_TAGS.get(artist or "")
+    if not spec:
+        return set()
+    styles, traits, regions, epoch = spec.split("|")
+    return ({f"estilo:{x}" for x in styles.split(",")} | {f"traco:{x}" for x in traits.split(",")}
+            | {f"regiao:{x}" for x in regions.split(",")} | {f"epoca:{epoch}"})
+
+
+def tags_from_text(text):
+    import re
+    low = " " + text.lower()
+    out = {tag for tag, keys in TAG_KEYWORDS if any(k in low for k in keys)}
+    for m in re.finditer(r"(\d{2})th-century", low):
+        out.add(f"epoca:s{(int(m.group(1)) - 1) * 100}")
+    for m in re.finditer(r"\b(1[5-9]\d\d)\b", low):
+        out.add(f"epoca:s{int(m.group(1)) // 100 * 100}")
+    return out
+
+
+def dynamic_tags(ft):
+    """Etiquetas que vem das cores: paleta (quente, fria, neutra) e luz (escura, media, clara)."""
+    out = set()
+    hue, lum = ft.get("hue"), ft.get("lum")
+    if hue is not None:
+        out.add("paleta:quente" if hue in ("11", "0", "1", "2") else "paleta:fria" if hue in ("5", "6", "7", "8", "9") else "paleta:neutra")
+    if lum is not None:
+        out.add("luz:escura" if lum in ("0", "1") else "luz:media" if lum == "2" else "luz:clara")
+    return out
+
+
+_TAGS_CACHE = None
+
+
+def get_tags():
+    global _TAGS_CACHE
+    if _TAGS_CACHE is None:
+        _TAGS_CACHE = load_json(TAGS, {}) if os.path.exists(TAGS) else {}
+    return _TAGS_CACHE
 
 
 def item_features(it, feats, meta):
@@ -450,7 +589,11 @@ def item_features(it, feats, meta):
     out["lum"] = ft.get("lum")
     w = meta.get(it["f"], {}).get("w", 0)
     out["q"] = "hi" if w >= 3000 else "lo" if w else None
-    return {k: v for k, v in out.items() if v is not None}
+    out = {k: v for k, v in out.items() if v is not None}
+    tags = set(get_tags().get(it["f"], [])) | dynamic_tags(out)
+    if tags:
+        out["tags"] = sorted(tags)
+    return out
 
 
 def cmd_features():
@@ -471,6 +614,105 @@ def cmd_features():
     print(f"{len(feats)} pinturas com cores")
 
 
+def feature_keys(ft, dims):
+    """Chaves de peso de uma pintura para as dimensoes pedidas. 'tags' sozinho = todas as etiquetas; 'tags:tema' = so a faceta."""
+    keys = []
+    for dim in dims:
+        if dim.startswith("tags"):
+            facet = dim.partition(":")[2]
+            keys += [f"tag:{t}" for t in ft.get("tags", []) if not facet or t.startswith(facet + ":")]
+        elif dim in ft:
+            keys.append(f"{dim}:{ft[dim]}")
+    return keys
+
+
+def cmd_tags():
+    """Etiquetas fixas de cada pintura (estilos, tracos, tema, regiao, epoca): tabela de artistas/categorias + categorias do Commons."""
+    import re
+    tags = load_json(TAGS, {}) if os.path.exists(TAGS) else {}
+    todo = [it for it in items() if it["f"] not in tags]
+    base = {}
+    for it in todo:
+        cat = it.get("c", "")
+        m = re.search(r" by (.+)$", cat)
+        t = tags_from_artist(m.group(1).strip() if m else None) | tags_from_text(cat)
+        for spec in CATEGORY_TAGS.get(cat, "").split():
+            t.add(spec)
+        base[it["f"]] = t
+    print(f"{len(todo)} pinturas sem etiquetas; consultando as categorias de cada arquivo no Commons")
+    for i in range(0, len(todo), 20):
+        batch = todo[i:i + 20]
+        cats, cont = {}, {}
+        while True:
+            q = urllib.parse.urlencode({"action": "query", "format": "json", "formatversion": "2", "prop": "categories",
+                                        "cllimit": "max", "titles": "|".join(b["t"] for b in batch), **cont})
+            req = urllib.request.Request(f"https://commons.wikimedia.org/w/api.php?{q}", headers={"User-Agent": UA})
+            try:
+                with urllib.request.urlopen(req, timeout=40) as r:
+                    data = json.load(r)
+            except Exception as e:
+                print(f"lote {i} falhou: {e}", file=sys.stderr)
+                time.sleep(10)
+                break
+            for page in data.get("query", {}).get("pages", []):
+                cats.setdefault(page["title"], []).extend(c["title"].removeprefix("Category:") for c in page.get("categories", []))
+            if "continue" not in data:
+                break
+            cont = data["continue"]
+            time.sleep(2.5)
+        for b in batch:
+            extra = cats.get(b["t"], [])
+            t = set(base[b["f"]]) | tags_from_text(" ".join(extra))
+            for c in extra:
+                m = re.search(r"(?:Paintings|Landscape paintings|Seascapes|Marine paintings) by (.+)$", c)
+                if m:
+                    t |= tags_from_artist(m.group(1).strip())
+            tags[b["f"]] = sorted(t)
+        save_json(TAGS, tags)
+        time.sleep(4)
+    count = {}
+    for ts in tags.values():
+        for t in ts:
+            count[t] = count.get(t, 0) + 1
+    print(f"{len(tags)} pinturas com etiquetas; {len(count)} etiquetas distintas")
+
+
+def cmd_niches():
+    """Combinacoes de etiquetas que mais aparecem no que voce gostou, comparadas com o acervo todo (lift)."""
+    import itertools
+    ratings = load_json(TASTE, {"ratings": {}}).get("ratings", {})
+    feats = load_json(FEATURES, {}) if os.path.exists(FEATURES) else {}
+    meta = load_json(META, {}) if os.path.exists(META) else {}
+    pool, _ = eligible()
+    def tagset(it):
+        return set(item_features(it, feats, meta).get("tags", []))
+    pool_sets = [tagset(it) for it in pool]
+    by_f = {it["f"]: it for it in items()}
+    liked = [tagset(by_f[f]) for f, r in ratings.items() if r.get("v") == 1 and f in by_f]
+    disliked = [tagset(by_f[f]) for f, r in ratings.items() if r.get("v") == -1 and f in by_f]
+    if not liked or not pool_sets:
+        sys.exit("sem avaliacoes positivas ou sem acervo")
+    def stats(combo):
+        in_pool = sum(1 for t in pool_sets if combo <= t) / len(pool_sets)
+        in_like = sum(1 for t in liked if combo <= t) / len(liked)
+        in_dis = sum(1 for t in disliked if combo <= t) / len(disliked) if disliked else 0.0
+        return in_pool, in_like, in_dis
+    tags = sorted({t for ts in liked for t in ts})
+    rows = []
+    for size in (1, 2, 3):
+        for combo in itertools.combinations(tags, size):
+            if len({c.split(":")[0] for c in combo}) < size and size > 1:
+                continue  # uma combinacao mistura facetas diferentes (estilo + tema + ...)
+            c = set(combo)
+            pp, pl, pd = stats(c)
+            if pp * len(pool_sets) < 15 or pl * len(liked) < 4:
+                continue
+            rows.append({"combo": list(combo), "no_acervo": round(pp, 3), "no_que_gostou": round(pl, 3),
+                         "lift": round(pl / pp, 2), "no_que_nao_gostou": round(pd, 3)})
+    rows = sorted(rows, key=lambda r: (r["lift"] * (1 - r["no_que_nao_gostou"]), r["no_que_gostou"]), reverse=True)
+    print(json.dumps({"avaliadas_positivas": len(liked), "avaliadas_negativas": len(disliked), "nichos": rows[:15]}, ensure_ascii=False, indent=1))
+
+
 def taste_model():
     """Pesos por caracteristica, recalculados das avaliacoes (reavaliar substitui a nota anterior)."""
     ratings = load_json(TASTE, {"ratings": {}}).get("ratings", {})
@@ -483,24 +725,25 @@ def taste_model():
         if not it or r.get("v") not in (1, -1):
             continue
         ft = item_features(it, feats, meta)
-        for dim in r.get("dims", []):
-            if dim in ft:
-                k = f"{dim}:{ft[dim]}"
-                weights[k] = weights.get(k, 0) + r["v"]
-        for dim in ("artist", "genre", "cat"):
-            if dim in ft:
-                k = f"{dim}:{ft[dim]}"
-                seen[k] = seen.get(k, 0) + 1
+        for k in feature_keys(ft, r.get("dims", [])):
+            weights[k] = weights.get(k, 0) + r["v"]
+        for k in feature_keys(ft, ("artist", "genre", "cat", "tags:estilo", "tags:tema")):
+            seen[k] = seen.get(k, 0) + 1
     return weights, seen
 
 
 def item_weight(it, weights, seen, explore, feats, meta):
     import math
     ft = item_features(it, feats, meta)
-    keys = [f"{d}:{v}" for d, v in ft.items()]
     if explore:
-        return 1.0 / (1 + sum(seen.get(k, 0) for k in keys if k.split(":")[0] in ("artist", "genre", "cat")))
-    return math.exp(0.5 * max(-6, min(6, sum(weights.get(k, 0) for k in keys))))
+        keys = feature_keys(ft, ("artist", "genre", "cat", "tags:estilo", "tags:tema"))
+        return 1.0 / (1 + sum(seen.get(k, 0) for k in keys))
+    plain = feature_keys(ft, [d for d in ft if d != "tags"])
+    tag_keys = feature_keys(ft, ("tags",))
+    score = sum(weights.get(k, 0) for k in plain)
+    if tag_keys:  # a media das etiquetas, para uma pintura com muitas etiquetas nao pesar mais so por isso
+        score += 3.0 * sum(weights.get(k, 0) for k in tag_keys) / len(tag_keys)
+    return math.exp(0.5 * max(-6, min(6, score)))
 
 
 def weighted_order(pool):
@@ -705,6 +948,10 @@ def main():
         cmd_features()
     elif cmd in ("like", "dislike"):
         cmd_rate(1 if cmd == "like" else -1, sys.argv[2:])
+    elif cmd == "tags":
+        cmd_tags()
+    elif cmd == "niches":
+        cmd_niches()
     elif cmd == "taste":
         cmd_taste()
     elif cmd == "meta":
