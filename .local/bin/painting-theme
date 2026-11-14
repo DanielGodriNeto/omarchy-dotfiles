@@ -779,9 +779,15 @@ def cmd_rate(value, reasons):
     else:
         data["ratings"][cur] = {"v": value, "dims": dims, "ts": int(time.time())}
     save_json(TASTE, data)
-    for stale in (NEXT_JSON, NEXT_JPG):  # a escolha ja baixada foi feita com o gosto antigo
-        if os.path.exists(stale):
-            os.remove(stale)
+    # A proxima pintura ja baixada e cortada continua valendo (e o que faz a troca ser instantanea); so
+    # descarta se for da mesma categoria da que acabou de ser rejeitada, e ja prepara outra em segundo plano.
+    ready = load_json(NEXT_JSON, {}) if os.path.exists(NEXT_JSON) else {}
+    cur_cat = next((i.get("c") for i in items() if i["f"] == cur), None)
+    if value == -1 and ready.get("c") and ready.get("c") == cur_cat:
+        for stale in (NEXT_JSON, NEXT_JPG):
+            if os.path.exists(stale):
+                os.remove(stale)
+        start_prefetch()
     print(json.dumps({"current": cur, "v": value, "dims": dims, "excluded": only_image and value == -1}))
 
 
