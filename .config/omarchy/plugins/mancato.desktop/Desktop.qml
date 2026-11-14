@@ -110,7 +110,7 @@ Scope {
       WlrLayershell.namespace: "mancato-desktop"
       anchors { top: true; bottom: true; left: true; right: true }
       // Input passes through, except over the rating buttons while they are shown.
-      mask: Region { item: root.rateMode && root.rating === 0 && win.shown > 0.5 && root.current !== "" ? ratingRow : null }
+      mask: Region { item: root.rating === 0 && win.shown > 0.5 && root.current !== "" ? (root.rateMode ? fixedButtons : trailingButtons) : null }
 
       // Relógio e legenda só aparecem com o workspace vazio: com janelas translúcidas
       // (terminal com opacidade) eles apareciam por trás delas.
@@ -174,64 +174,14 @@ Scope {
         anchors.margins: 16
         spacing: 8
 
-        // Fixed slot at the corner: the buttons (or the rating symbol) never move, whatever the
-        // caption's length; the caption sits to its right.
+        // Quick rating mode: the buttons sit in a fixed slot at the corner, so they never
+        // move whatever the caption's length; the caption follows to their right.
         Item {
-          id: ratingSlot
+          id: fixedSlot
           width: 88
           height: 34
           visible: root.rateMode && root.current !== ""
-
-          // Two buttons until the painting is rated; then a small symbol of the rating.
-          Row {
-            id: ratingRow
-            visible: root.current !== ""
-            spacing: 8
-
-            Repeater {
-              model: root.rating === 0 ? [{ glyph: "󰔓", act: "like" }, { glyph: "󰔑", act: "dislike" }] : []
-              delegate: Rectangle {
-                id: btn
-                required property var modelData
-                width: 40
-                height: 34
-                radius: Style.cornerRadius
-                color: area.containsMouse ? Qt.alpha(root.accent, 0.45) : Qt.alpha(Commons.Color.background, 0.7)
-                Text {
-                  anchors.centerIn: parent
-                  textFormat: Text.PlainText
-                  text: btn.modelData.glyph
-                  color: root.textColor
-                  font.family: Style.font.menuFamily
-                  font.pixelSize: Style.font.title
-                }
-                MouseArea {
-                  id: area
-                  anchors.fill: parent
-                  hoverEnabled: true
-                  cursorShape: Qt.PointingHandCursor
-                  onClicked: root.rate(btn.modelData.act)
-                }
-              }
-            }
-
-            Rectangle {
-              visible: root.rating !== 0
-              width: 34
-              height: 34
-              radius: Style.cornerRadius
-              color: Qt.alpha(Commons.Color.background, 0.7)
-              Text {
-                anchors.centerIn: parent
-                textFormat: Text.PlainText
-                text: root.rating > 0 ? "󰔓" : "󰔑"
-                color: root.rating > 0 ? root.accent : root.textColor
-                opacity: root.rating > 0 ? 1 : 0.6
-                font.family: Style.font.menuFamily
-                font.pixelSize: Style.font.title
-              }
-            }
-          }
+          RatingButtons { id: fixedButtons }
         }
 
         Rectangle {
@@ -250,6 +200,61 @@ Scope {
             font.pixelSize: Style.font.caption + 2
           }
         }
+
+        // Otherwise (the usual way) the buttons come after the caption.
+        RatingButtons {
+          id: trailingButtons
+          visible: !root.rateMode && root.current !== ""
+        }
+      }
+    }
+  }
+
+  // Two buttons until the painting is rated; then a small symbol of the rating.
+  component RatingButtons: Row {
+    spacing: 8
+
+    Repeater {
+      model: root.rating === 0 ? [{ glyph: "󰔓", act: "like" }, { glyph: "󰔑", act: "dislike" }] : []
+      delegate: Rectangle {
+        id: btn
+        required property var modelData
+        width: 40
+        height: 34
+        radius: Style.cornerRadius
+        color: area.containsMouse ? Qt.alpha(root.accent, 0.45) : Qt.alpha(Commons.Color.background, 0.7)
+        Text {
+          anchors.centerIn: parent
+          textFormat: Text.PlainText
+          text: btn.modelData.glyph
+          color: root.textColor
+          font.family: Style.font.menuFamily
+          font.pixelSize: Style.font.title
+        }
+        MouseArea {
+          id: area
+          anchors.fill: parent
+          hoverEnabled: true
+          cursorShape: Qt.PointingHandCursor
+          onClicked: root.rate(btn.modelData.act)
+        }
+      }
+    }
+
+    Rectangle {
+      visible: root.rating !== 0
+      width: 34
+      height: 34
+      radius: Style.cornerRadius
+      color: Qt.alpha(Commons.Color.background, 0.7)
+      Text {
+        anchors.centerIn: parent
+        textFormat: Text.PlainText
+        text: root.rating > 0 ? "󰔓" : "󰔑"
+        color: root.rating > 0 ? root.accent : root.textColor
+        opacity: root.rating > 0 ? 1 : 0.6
+        font.family: Style.font.menuFamily
+        font.pixelSize: Style.font.title
       }
     }
   }
