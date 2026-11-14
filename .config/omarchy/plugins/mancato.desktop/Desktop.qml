@@ -161,6 +161,66 @@ Scope {
         anchors.margins: 16
         spacing: 8
 
+        // Fixed slot at the corner: the buttons (or the rating symbol) never move, whatever the
+        // caption's length; the caption sits to its right.
+        Item {
+          id: ratingSlot
+          width: 88
+          height: 34
+          visible: root.current !== ""
+
+          // Two buttons until the painting is rated; then a small symbol of the rating.
+          Row {
+            id: ratingRow
+            visible: root.current !== ""
+            spacing: 8
+
+            Repeater {
+              model: root.rating === 0 ? [{ glyph: "󰔓", act: "like" }, { glyph: "󰔑", act: "dislike" }] : []
+              delegate: Rectangle {
+                id: btn
+                required property var modelData
+                width: 40
+                height: 34
+                radius: Style.cornerRadius
+                color: area.containsMouse ? Qt.alpha(root.accent, 0.45) : Qt.alpha(Commons.Color.background, 0.7)
+                Text {
+                  anchors.centerIn: parent
+                  textFormat: Text.PlainText
+                  text: btn.modelData.glyph
+                  color: root.textColor
+                  font.family: Style.font.menuFamily
+                  font.pixelSize: Style.font.title
+                }
+                MouseArea {
+                  id: area
+                  anchors.fill: parent
+                  hoverEnabled: true
+                  cursorShape: Qt.PointingHandCursor
+                  onClicked: root.rate(btn.modelData.act)
+                }
+              }
+            }
+
+            Rectangle {
+              visible: root.rating !== 0
+              width: 34
+              height: 34
+              radius: Style.cornerRadius
+              color: Qt.alpha(Commons.Color.background, 0.7)
+              Text {
+                anchors.centerIn: parent
+                textFormat: Text.PlainText
+                text: root.rating > 0 ? "󰔓" : "󰔑"
+                color: root.rating > 0 ? root.accent : root.textColor
+                opacity: root.rating > 0 ? 1 : 0.6
+                font.family: Style.font.menuFamily
+                font.pixelSize: Style.font.title
+              }
+            }
+          }
+        }
+
         Rectangle {
           visible: root.caption !== ""
           width: cap.implicitWidth + 24
@@ -175,57 +235,6 @@ Scope {
             opacity: 0.85
             font.family: Style.font.menuFamily
             font.pixelSize: Style.font.caption + 2
-          }
-        }
-
-        // Two buttons until the painting is rated; then a small symbol of the rating.
-        Row {
-          id: ratingRow
-          visible: root.current !== ""
-          spacing: 8
-
-          Repeater {
-            model: root.rating === 0 ? [{ glyph: "󰔓", act: "like" }, { glyph: "󰔑", act: "dislike" }] : []
-            delegate: Rectangle {
-              id: btn
-              required property var modelData
-              width: 40
-              height: 34
-              radius: Style.cornerRadius
-              color: area.containsMouse ? Qt.alpha(root.accent, 0.45) : Qt.alpha(Commons.Color.background, 0.7)
-              Text {
-                anchors.centerIn: parent
-                textFormat: Text.PlainText
-                text: btn.modelData.glyph
-                color: root.textColor
-                font.family: Style.font.menuFamily
-                font.pixelSize: Style.font.title
-              }
-              MouseArea {
-                id: area
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: root.rate(btn.modelData.act)
-              }
-            }
-          }
-
-          Rectangle {
-            visible: root.rating !== 0
-            width: 34
-            height: 34
-            radius: Style.cornerRadius
-            color: Qt.alpha(Commons.Color.background, 0.7)
-            Text {
-              anchors.centerIn: parent
-              textFormat: Text.PlainText
-              text: root.rating > 0 ? "󰔓" : "󰔑"
-              color: root.rating > 0 ? root.accent : root.textColor
-              opacity: root.rating > 0 ? 1 : 0.6
-              font.family: Style.font.menuFamily
-              font.pixelSize: Style.font.title
-            }
           }
         }
       }
