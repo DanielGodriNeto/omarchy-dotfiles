@@ -20,6 +20,9 @@ Scope {
   property bool clockOn: true
   // Rating of the current painting (1 liked, -1 disliked, 0 none), from the taste file.
   property string current: ""
+  // The corner buttons exist only while the quick rating mode is on (paintings menu).
+  property bool rateMode: false
+  readonly property string configPath: Quickshell.env("HOME") + "/.config/painting-theme/config.json"
   property var ratings: ({})
   readonly property int rating: ratings[current] ? (ratings[current].v || 0) : 0
   readonly property string tastePath: Quickshell.env("HOME") + "/.config/painting-theme/taste.json"
@@ -32,6 +35,16 @@ Scope {
   }
 
   Process { id: rateProc }
+
+  FileView {
+    id: configFile
+    path: root.configPath
+    watchChanges: true
+    printErrors: false
+    onFileChanged: reload()
+    onLoaded: { try { root.rateMode = !!JSON.parse(text()).rate_mode } catch (e) { root.rateMode = false } }
+    onLoadFailed: root.rateMode = false
+  }
 
   FileView {
     id: tasteFile
@@ -97,7 +110,7 @@ Scope {
       WlrLayershell.namespace: "mancato-desktop"
       anchors { top: true; bottom: true; left: true; right: true }
       // Input passes through, except over the rating buttons while they are shown.
-      mask: Region { item: root.rating === 0 && win.shown > 0.5 && root.current !== "" ? ratingRow : null }
+      mask: Region { item: root.rateMode && root.rating === 0 && win.shown > 0.5 && root.current !== "" ? ratingRow : null }
 
       // Relógio e legenda só aparecem com o workspace vazio: com janelas translúcidas
       // (terminal com opacidade) eles apareciam por trás delas.
@@ -167,7 +180,7 @@ Scope {
           id: ratingSlot
           width: 88
           height: 34
-          visible: root.current !== ""
+          visible: root.rateMode && root.current !== ""
 
           // Two buttons until the painting is rated; then a small symbol of the rating.
           Row {
