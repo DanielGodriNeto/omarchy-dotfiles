@@ -17,3 +17,4 @@
 ## Gosto semeado (13/11/2026)
 - O usuário respondeu às 58 amostras: gostou da grande maioria (muito: 9, 25, 28-30, 39, 44-46, 50, 51, 55-57); não gostou de 23, 27, 37 e, mais ou menos, de 47; 54 foi "muito escura"; 31 e 58 neutros.
 - 74 avaliações semente gravadas em `~/.config/painting-theme/taste.json` (marcadas `seed`): gostar = 1 avaliação por tema, "muito" = 2 (46 = 3), não gostar = 2, "não muito" = 1, só dimensões tema e artista (e `lum` para a escura). Backup `taste.json.bak.*` ao lado. Resultado: favorece Aivazovsky, Friedrich, Bierstadt e pores do sol do século 19; evita Hodler, Remington, "pores do sol" genéricos e Kuhnert.
+- **Correção (13/11):** o não gostar da amostra 23 era do estilo daquela imagem (artístico, pouco realista, borda), não do tema pores do sol. Removidas as 2 avaliações negativas da categoria `Paintings of sunsets` e excluída só aquela imagem (`1218.jpg` em `exclude.txt`).
