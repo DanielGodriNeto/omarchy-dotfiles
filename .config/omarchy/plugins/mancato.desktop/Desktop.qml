@@ -18,6 +18,34 @@ Scope {
   property string caption: ""
   // The big clock can be switched off (desktop-clock); the caption stays.
   property bool clockOn: true
+  // Rating of the current painting (1 liked, -1 disliked, 0 none), from the taste file.
+  property string current: ""
+  property var ratings: ({})
+  readonly property int rating: ratings[current] ? (ratings[current].v || 0) : 0
+  readonly property string tastePath: Quickshell.env("HOME") + "/.config/painting-theme/taste.json"
+
+  function rate(action) {
+    rateProc.after = action === "dislike"
+    rateProc.command = ["painting-theme", action]
+    if (!rateProc.running) rateProc.running = true
+  }
+
+  Process {
+    id: rateProc
+    property bool after: false
+    onRunningChanged: if (!running && after) { after = false; nextProc.running = true }
+  }
+
+  Process { id: nextProc; command: ["painting-theme", "next"] }
+
+  FileView {
+    id: tasteFile
+    path: root.tastePath
+    watchChanges: true
+    printErrors: false
+    onFileChanged: reload()
+    onLoaded: { try { root.ratings = JSON.parse(text()).ratings || {} } catch (e) { root.ratings = {} } }
+  }
   property date now: new Date()
 
   readonly property string statePath: Quickshell.env("HOME") + "/.local/state/painting-theme/state.json"
@@ -53,7 +81,11 @@ Scope {
     printErrors: false
     onFileChanged: reload()
     onLoaded: {
-      try { root.caption = root.cleanTitle(JSON.parse(text()).title) } catch (e) { root.caption = "" }
+      try {
+        var state = JSON.parse(text())
+        root.caption = root.cleanTitle(state.title)
+        root.current = state.current || ""
+      } catch (e) { root.caption = ""; root.current = "" }
     }
   }
 
@@ -69,7 +101,8 @@ Scope {
       WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
       WlrLayershell.namespace: "mancato-desktop"
       anchors { top: true; bottom: true; left: true; right: true }
-      mask: Region {}
+      // Input passes through, except over the rating buttons while they are shown.
+      mask: Region { item: root.rating === 0 && win.shown > 0.5 && root.current !== "" ? ratingRow : null }
 
       // Relógio e legenda só aparecem com o workspace vazio: com janelas translúcidas
       // (terminal com opacidade) eles apareciam por trás delas.
@@ -125,24 +158,80 @@ Scope {
         }
       }
 
-      Rectangle {
-        visible: root.caption !== ""
+      Row {
+        id: cornerRow
         opacity: win.shown
         anchors.left: parent.left
         anchors.bottom: parent.bottom
         anchors.margins: 16
-        width: cap.implicitWidth + 24
-        height: cap.implicitHeight + 14
-        radius: Style.cornerRadius
-        color: Qt.alpha(Commons.Color.background, 0.7)
-        Text {
-          id: cap
-          anchors.centerIn: parent
-          text: root.caption
-          color: root.textColor
-          opacity: 0.85
-          font.family: Style.font.menuFamily
-          font.pixelSize: Style.font.caption + 2
+        spacing: 8
+
+        Rectangle {
+          visible: root.caption !== ""
+          width: cap.implicitWidth + 24
+          height: 34
+          radius: Style.cornerRadius
+          color: Qt.alpha(Commons.Color.background, 0.7)
+          Text {
+            id: cap
+            anchors.centerIn: parent
+            text: root.caption
+            color: root.textColor
+            opacity: 0.85
+            font.family: Style.font.menuFamily
+            font.pixelSize: Style.font.caption + 2
+          }
+        }
+
+        // Two buttons until the painting is rated; then a small symbol of the rating.
+        Row {
+          id: ratingRow
+          visible: root.current !== ""
+          spacing: 8
+
+          Repeater {
+            model: root.rating === 0 ? [{ glyph: "󰔓", act: "like" }, { glyph: "󰔑", act: "dislike" }] : []
+            delegate: Rectangle {
+              id: btn
+              required property var modelData
+              width: 40
+              height: 34
+              radius: Style.cornerRadius
+              color: area.containsMouse ? Qt.alpha(root.accent, 0.45) : Qt.alpha(Commons.Color.background, 0.7)
+              Text {
+                anchors.centerIn: parent
+                textFormat: Text.PlainText
+                text: btn.modelData.glyph
+                color: root.textColor
+                font.family: Style.font.menuFamily
+                font.pixelSize: Style.font.title
+              }
+              MouseArea {
+                id: area
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: root.rate(btn.modelData.act)
+              }
+            }
+          }
+
+          Rectangle {
+            visible: root.rating !== 0
+            width: 34
+            height: 34
+            radius: Style.cornerRadius
+            color: Qt.alpha(Commons.Color.background, 0.7)
+            Text {
+              anchors.centerIn: parent
+              textFormat: Text.PlainText
+              text: root.rating > 0 ? "󰔓" : "󰔑"
+              color: root.rating > 0 ? root.accent : root.textColor
+              opacity: root.rating > 0 ? 1 : 0.6
+              font.family: Style.font.menuFamily
+              font.pixelSize: Style.font.title
+            }
+          }
         }
       }
     }

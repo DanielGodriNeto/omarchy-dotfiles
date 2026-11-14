@@ -259,7 +259,7 @@ Item {
           Chip {
             label: "Não gostei"
             on: root.stage === "dislike" || (root.stage === "idle" && root.myRating === -1)
-            onClicked: { root.picked = []; root.stage = "dislike" }
+            onClicked: { root.picked = []; root.stage = "dislike"; root.confirmRating() }
           }
         }
 

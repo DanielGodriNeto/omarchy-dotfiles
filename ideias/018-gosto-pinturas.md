@@ -6,3 +6,11 @@
 
 ## Notas
 Feito: motor, painel, descoberta, acervo de ~1267. Falta: usar de verdade e ajustar; categoria de "bandidos" não existe na Commons.
+
+## Feedback simplificado (13/11/2026)
+- O usuário achou demorado descrever motivos: o Gostei/Não gostei agora é só um clique, sem escolher motivo.
+- **Botões 👍 👎 no canto da pintura** (`mancato.desktop`, ao lado da legenda, só na área de trabalho vazia). Depois da avaliação os botões somem e ficam só um símbolo (👍 em destaque, 👎 apagado). **Não gostei** troca para outra pintura na hora (como no painel); **Gostei** fica na atual.
+- **Mudar de ideia:** menu das pinturas → **Minha avaliação desta pintura** → Gostei, Não gostei ou Remover avaliação (`painting-theme rating` mostra a nota; `painting-theme unrate` remove).
+- Painel da pintura (clique na barra): **Não gostei** também é direto, sem lista de motivos.
+- Sem motivo, a avaliação vale para tudo que descreve a pintura (categoria, artista, gênero, etiquetas de estilo, traço, tema, região, época, paleta e luz), menos a qualidade do arquivo.
+- Verificado: botões e símbolo na tela, ciclo gostei → remover por comando, submenu no menu. Os cliques nos botões não foram testados (o ponteiro por script não chega à camada do desktop).

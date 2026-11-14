@@ -12,6 +12,8 @@ Uso:
   painting-theme like|dislike [motivos]  avalia a pintura atual (motivos: cores genero estilo autor qualidade imagem)
   painting-theme tags            etiqueta cada pintura (estilos, tracos, tema, regiao, epoca) usando o Commons
   painting-theme niches          combinacoes de etiquetas que mais aparecem no que voce gostou
+  painting-theme rating          nota da pintura atual (1, -1 ou 0)
+  painting-theme unrate          remove a nota da pintura atual
   painting-theme taste           resume o gosto aprendido
 """
 import colorsys, fcntl, functools, json, os, random, shutil, subprocess, sys, time, urllib.parse, urllib.request
@@ -765,8 +767,8 @@ def cmd_rate(value, reasons):
         sys.exit(f"motivo desconhecido: {bad}")
     only_image = "imagem" in reasons
     dims = [d for r in reasons if r in DIMS for d in DIMS[r]]
-    if not reasons:
-        dims = [d for ds in DIMS.values() for d in ds]
+    if not reasons:  # sem motivo: tudo que descreve a pintura, menos a qualidade do arquivo
+        dims = [d for k, ds in DIMS.items() if k != "qualidade" for d in ds]
     data = load_json(TASTE, {"ratings": {}})
     if only_image and value == -1:
         data["ratings"].pop(cur, None)
@@ -919,6 +921,21 @@ def cmd_status():
     print(json.dumps(s, ensure_ascii=False))
 
 
+def cmd_rating():
+    """Nota da pintura atual: 1 (gostei), -1 (nao gostei) ou 0."""
+    cur = load_json(STATE, {}).get("current")
+    print((load_json(TASTE, {"ratings": {}})["ratings"].get(cur) or {}).get("v", 0))
+
+
+def cmd_unrate():
+    """Remove a nota da pintura atual (mudei de ideia)."""
+    cur = load_json(STATE, {}).get("current")
+    data = load_json(TASTE, {"ratings": {}})
+    data["ratings"].pop(cur, None)
+    save_json(TASTE, data)
+    print(json.dumps({"current": cur, "v": 0}))
+
+
 def cmd_config(args):
     cfg = load_json(CFG, DEFAULTS)
     if len(args) == 2:
@@ -952,6 +969,10 @@ def main():
         cmd_tags()
     elif cmd == "niches":
         cmd_niches()
+    elif cmd == "rating":
+        cmd_rating()
+    elif cmd == "unrate":
+        cmd_unrate()
     elif cmd == "taste":
         cmd_taste()
     elif cmd == "meta":
