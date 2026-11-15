@@ -1,8 +1,10 @@
 # Mapa de arquivos (gerado por scripts/map.sh, não edite à mão)
 
 - `.config/brave-newtab/index.html`: New tab page: the current desktop wallpaper (bg.jpg, refreshed on every Omarchy
+- `.config/foot/foot.ini`: Terminal translúcido: o lago de carpas (mancato.lake) aparece por trás.
 - `.config/hypr/autostart.lua`: Extra autostart processes.
 - `.config/hypr/bindings.lua`: Keep only your personal keybinding overrides here. Add new bindings or
+- `.config/hypr/hyprland.lua`: Learn how to configure Hyprland: https://wiki.hypr.land/Configuring/Start/
 - `.config/hypr/input.lua`: Keep only your personal input overrides here. Uncommented settings below
 - `.config/hypr/looknfeel.lua`: Change the default Omarchy look'n'feel.
 - `.config/hypr/monitors.lua`: See https://wiki.hypr.land/Configuring/Basics/Monitors/
@@ -61,6 +63,14 @@
 - `.config/omarchy/plugins/mancato.dock/manifest.json`:   "description": "App dock shown on floating workspaces",
 - `.config/omarchy/plugins/mancato.expose/Expose.qml`: Every open window as a 16:9 card. Click brings it to the current workspace,
 - `.config/omarchy/plugins/mancato.expose/manifest.json`:   "description": "Every open window as a 16:9 card: close it or bring it to the current workspace",
+- `.config/omarchy/plugins/mancato.lake/Lake.js`: (sem descrição)
+- `.config/omarchy/plugins/mancato.lake/Lake.qml`: One koi lake for the whole screen, drawn on the Bottom layer. Only the rectangles of foot windows
+- `.config/omarchy/plugins/mancato.lake/README.md`: mancato.lake
+- `.config/omarchy/plugins/mancato.lake/cells.frag`: version 440
+- `.config/omarchy/plugins/mancato.lake/cells.frag.qsb`: (sem descrição)
+- `.config/omarchy/plugins/mancato.lake/lake.frag`: version 440
+- `.config/omarchy/plugins/mancato.lake/lake.frag.qsb`: (sem descrição)
+- `.config/omarchy/plugins/mancato.lake/manifest.json`:   "description": "One ASCII koi lake seen through translucent foot terminals",
 - `.config/omarchy/plugins/mancato.menu/BarWidget.qml`: import QtQuick
 - `.config/omarchy/plugins/mancato.menu/Menu.qml`: Injected by omarchy-shell when this plugin is summoned.
 - `.config/omarchy/plugins/mancato.menu/MenuExtras.js`: Additions to the cloned Omarchy menu: a one-line explanation under rows that
@@ -103,6 +113,7 @@
 - `.local/bin/fastfetch-art`: """Pinta o logo do fastfetch com uma pintura de natureza no tom do tema Omarchy (sorteada dentro de uma faixa de cores)."""
 - `.local/bin/fastfetch-fit`: """fastfetch adaptativo: ajusta imagem e secoes ao tamanho do terminal."""
 - `.local/bin/focus-mode`: Modo foco: esconde a barra e esmaece as janelas inativas. Rode de novo para sair.
+- `.local/bin/lake-term-state`: """Para cada pid de terminal foot recebido, diz se o shell filho está no prompt (true) ou rodando algo
 - `.local/bin/omarchy-ac-idle-watcher`: Keeps Omarchy's idle/lock "stay awake" state in sync with AC power presence.
 - `.local/bin/omarchy-cliamp-toggle-provider`: omarchy:summary=Switch the cliamp desktop widget's music source between Spotify and local radio
 - `.local/bin/omarchy-peek-desktop`: Toggle "peek at desktop": switch every monitor's view to an unused,

@@ -1,0 +1,37 @@
+#!/usr/bin/env python3
+"""Para cada pid de terminal foot recebido, diz se o shell filho está no prompt (true) ou rodando algo
+na frente (false). Saída: JSON {"pid": bool}. Sem filho ou erro de leitura conta como ocioso."""
+import json, os, sys
+
+SHELLS = {"bash", "zsh", "fish", "sh", "dash", "nu", "elvish", "xonsh"}
+
+
+def children(pid):
+    out = []
+    try:
+        for t in os.listdir(f"/proc/{pid}/task"):
+            with open(f"/proc/{pid}/task/{t}/children") as f:
+                out += f.read().split()
+    except OSError:
+        pass
+    return out
+
+
+def idle(pid):
+    kids = children(pid)
+    if not kids:
+        return True
+    try:
+        with open(f"/proc/{kids[0]}/comm") as f:
+            if f.read().strip().lstrip("-") not in SHELLS:
+                return False  # a program started directly in the terminal (btop, a script): busy
+        with open(f"/proc/{kids[0]}/stat") as f:
+            s = f.read()
+        rest = s[s.rindex(")") + 2:].split()
+        pgrp, tpgid = int(rest[2]), int(rest[5])
+        return tpgid == pgrp
+    except (OSError, ValueError, IndexError):
+        return True
+
+
+print(json.dumps({p: idle(p) for p in sys.argv[1:]}))

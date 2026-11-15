@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "mancato.lake",
+  "name": "Koi lake",
+  "version": "1.0.0",
+  "author": "mancato",
+  "description": "One ASCII koi lake seen through translucent foot terminals",
+  "kinds": ["service"],
+  "entryPoints": { "service": "Lake.qml" }
+}

@@ -73,3 +73,7 @@ o.bind("SUPER + grave", "Workspaces overview", { panel = "mancato.overview" })
 o.bind("SUPER + SHIFT + grave", "All windows", { panel = "mancato.expose" })
 o.bind("SUPER + ALT + N", "Notification history", { panel = "mancato.notifcenter" })
 o.bind("SUPER + ALT + Z", "Focus mode", "focus-mode")
+
+-- Lago de carpas (mancato.lake): todo clique esquerdo avisa o shell, sem ser consumido, para gerar
+-- uma onda se o ponteiro estiver sobre um terminal que mostra o lago.
+hl.bind("mouse:272", function() hl.exec_cmd("omarchy-shell -q mancato.lake click") end, { non_consuming = true, ignore_mods = true, transparent = true })
