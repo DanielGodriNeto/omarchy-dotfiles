@@ -1,6 +1,6 @@
 # Handoff (curto): Hyprland/Omarchy do mancato
 
-**Verificado no commit `bcb0f04` em 15/11/2026** (o verificador confere que o sha existe, que nenhum arquivo que não seja `.md` mudou desde ele e que todo caminho citado aqui existe).
+**Verificado no commit `18320a7` em 15/11/2026** (o verificador confere que o sha existe, que nenhum arquivo que não seja `.md` mudou desde ele e que todo caminho citado aqui existe).
 
 Histórico completo e fatos técnicos: [docs/HISTORICO.md](docs/HISTORICO.md). Ideias e estados: [ideias.md](ideias.md). Mapa do código: `graphify-out/GRAPH_REPORT.md` (consulte com `graphify query`).
 
