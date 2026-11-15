@@ -117,6 +117,7 @@
 - `.local/bin/fastfetch-fit`: """fastfetch adaptativo: ajusta imagem e secoes ao tamanho do terminal."""
 - `.local/bin/focus-mode`: Modo foco: esconde a barra e esmaece as janelas inativas. Rode de novo para sair.
 - `.local/bin/lake-config`: """Configuração do lago de carpas (~/.config/omarchy/lake.json), lida pelo plugin mancato.lake.
+- `.local/bin/lake-palette`: """Cores do papel de parede atual para as carpas do lago (mancato.lake), tiradas de pontos diferentes
 - `.local/bin/lake-term-state`: """Para cada pid de terminal foot recebido, diz se o shell filho está no prompt (true) ou rodando algo
 - `.local/bin/omarchy-ac-idle-watcher`: Keeps Omarchy's idle/lock "stay awake" state in sync with AC power presence.
 - `.local/bin/omarchy-cliamp-toggle-provider`: omarchy:summary=Switch the cliamp desktop widget's music source between Spotify and local radio

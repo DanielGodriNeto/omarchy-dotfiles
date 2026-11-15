@@ -10,11 +10,43 @@ var CW = 5, CH = 9, W = 1920, H = 1080, cols = 384, rows = 120
 var N = 12
 var fish = [], rips = [], t = 0
 var cfg = { count: 16, speed: 1, palette: "mix" }
+var paint = []
 var PALS = { mix: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], warm: [0, 1, 2, 3, 5, 6, 11], cool: [7, 8, 9, 10, 4], paint: [0] }
 var VAR = [0, 1, 0, 1, 2, 1, 0, 3, 1, 0, 2, 1, 3, 0, 1, 0]
 
 function clamp(v, a, b) { return v < a ? a : v > b ? b : v }
 function colourFor(k) { var p = PALS[cfg.palette] || PALS.mix; return p[(k * 5 + 2) % p.length] }
+function lum(c) { return .3 * c[0] + .59 * c[1] + .11 * c[2] }
+function mixc(a, b, k) { return [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k] }
+function hsv(c) {
+  var r = c[0] / 255, g = c[1] / 255, b = c[2] / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn, h = 0
+  if (d > 0) h = mx === r ? ((g - b) / d + 6) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4
+  return [h * 60, mx ? d / mx : 0, mx]
+}
+function rgb(h, s, v) {
+  var f = function (n) { var k = (n + h / 60) % 6; return v - v * s * Math.max(0, Math.min(k, 4 - k, 1)) }
+  return [f(5) * 255, f(3) * 255, f(1) * 255]
+}
+/* Colours of one koi taken from the painting: light bodies, vivid patches, dark spots, each from a different
+ * point of the palette; every third koi swings its patch hue so a one-coloured painting still has variety. */
+function customFor(k) {
+  if (cfg.palette !== "paint" || paint.length < 3) return null
+  var sorted = paint.slice().sort(function (a, b) { return lum(b) - lum(a) }), n = sorted.length, t = Math.max(1, Math.ceil(n / 3))
+  var lights = sorted.slice(0, t), darks = sorted.slice(n - t), mids = sorted.slice(t, n - t)
+  if (!mids.length) mids = sorted
+  var h = Math.imul(k + 1, 2654435761) >>> 0
+  var body = mixc(lights[h % lights.length], [255, 248, 236], .5)
+  var p = hsv(mids[(h >>> 8) % mids.length])
+  var swing = [0, 0, 28, -28, 55, -55][(h >>> 16) % 6]
+  var patch = rgb((p[0] + swing + 360) % 360, Math.min(1, p[1] * 1.25 + .1), Math.max(.55, p[2]))
+  var spot = mixc(darks[(h >>> 24) % darks.length], [10, 8, 8], .45)
+  return { red: patch, white: body, black: spot }
+}
+function recolor() {
+  for (var i = 0; i < fish.length; i++) { fish[i].colour = colourFor(i); fish[i].custom = customFor(i) }
+}
+function setPaint(list) { paint = list || []; recolor() }
+
 function rnd(a, b) { return a + Math.random() * (b - a) }
 
 function mk(k) {
@@ -32,6 +64,7 @@ function init(w, h, count) {
   W = w; H = h; cols = Math.ceil(w / CW); rows = Math.ceil(h / CH); fish = []
   cfg.count = count || cfg.count
   for (var i = 0; i < cfg.count; i++) fish.push(mk(i))
+  recolor()
 }
 /* c: { count, speed, palette }. Resizes the shoal and recolours it without restarting the lake. */
 function configure(c) {
@@ -40,7 +73,7 @@ function configure(c) {
   cfg.count = clamp(Math.round(c.count || 16), 1, 32)
   while (fish.length < cfg.count) fish.push(mk(fish.length))
   fish.length = cfg.count
-  for (var i = 0; i < fish.length; i++) fish[i].colour = colourFor(i)
+  recolor()
 }
 function size() { return { cols: cols, rows: rows, cw: CW, ch: CH } }
 function time() { return t }
@@ -100,7 +133,7 @@ function enc(col, row, v) {
   texels.push(col, row, q >> 8, q & 255)
 }
 
-/* The fish as a flat list [col, row, r, g, ...] of texels of a 40 x 32 image, one row per koi: columns 0..N-1
+/* The fish as a flat list [col, row, r, g, ...] of texels of a 48 x 32 image, one row per koi: columns 0..N-1
  * the spine x, N..2N-1 the spine y (with the swimming wave applied), then flare L, flare R, depth (x100),
  * colour, seed, variety. The shader decodes (r * 256 + g) / 16 - 512. */
 function fishTexels() {
@@ -125,6 +158,12 @@ function fishTexels() {
     enc(2 * N + 6, a, f.nodes[N >> 1][0])
     enc(2 * N + 7, a, f.nodes[N >> 1][1])
     enc(2 * N + 8, a, f.L * .8)
+    var cu = f.custom
+    enc(2 * N + 9, a, cu ? 1 : 0)
+    if (cu) {
+      var cs = [cu.red, cu.white, cu.black]
+      for (var q2 = 0; q2 < 3; q2++) for (var ch = 0; ch < 3; ch++) enc(2 * N + 10 + q2 * 3 + ch, a, Math.round(clamp(cs[q2][ch], 0, 255)))
+    }
   }
   return texels
 }

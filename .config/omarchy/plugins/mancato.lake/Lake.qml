@@ -43,6 +43,26 @@ Scope {
   }
   readonly property bool needsIdleState: enabled && !(mode === "always" || (mode === "auto" && perf))
 
+  // Colours of the painting on the wall, for the "Da pintura" palette (lake-palette, cached per image).
+  function loadPalette() { if (!paletteProc.running) paletteProc.running = true }
+
+  Process {
+    id: paletteProc
+    command: ["lake-palette"]
+    stdout: StdioCollector {
+      waitForEnd: true
+      onStreamFinished: { try { Sim.setPaint(JSON.parse(text)) } catch (e) { Sim.setPaint([]) } }
+    }
+  }
+
+  FileView {
+    path: Quickshell.env("HOME") + "/.local/state/painting-theme/state.json"
+    watchChanges: true
+    printErrors: false
+    onFileChanged: paletteDelay.restart()
+  }
+  Timer { id: paletteDelay; interval: 1500; onTriggered: root.loadPalette() }
+
   function applyConfig(txt) {
     var c = {}
     try { c = JSON.parse(txt) } catch (e) {}
@@ -51,6 +71,7 @@ Scope {
     ripplesOn = c.ripples !== false
     Sim.configure({ count: c.count || 16, speed: c.speed || 1, palette: c.palette || "mix" })
     fishCount = Sim.count()
+    if ((c.palette || "mix") === "paint") loadPalette()
   }
 
   FileView {
@@ -71,7 +92,9 @@ Scope {
       if (!o || !o.at || !o.size || o.hidden || o.mapped === false || !isTerm(o["class"])) continue
       out.push({ addr: o.address, pid: o.pid, ws: o.workspace ? o.workspace.id : -1, mon: o.monitor, x: o.at[0], y: o.at[1], w: o.size[0], h: o.size[1] })
     }
+    var first = wins.length === 0 && out.length > 0
     wins = out
+    if (first && enabled) { Sim.step(); simT = Sim.time(); pushRipples(); tick++ }
   }
 
   function pushRipples() {
@@ -86,6 +109,18 @@ Scope {
     repeat: true
     onTriggered: { Hyprland.refreshToplevels(); root.collect() }
   }
+
+  // Windows opening, closing, moving or changing workspace re-read the geometry right away instead of
+  // waiting for the next 300 ms tick (a new terminal showed no koi until then).
+  Connections {
+    target: Hyprland
+    function onRawEvent(event) {
+      var n = event.name
+      if (n === "openwindow" || n === "closewindow" || n === "workspace" || n === "workspacev2" || n === "activewindow" || n === "changefloatingmode" || n === "fullscreen" || n.indexOf("movewindow") === 0) refreshSoon.restart()
+    }
+  }
+  Timer { id: refreshSoon; interval: 15; onTriggered: { Hyprland.refreshToplevels(); recollect.restart() } }
+  Timer { id: recollect; interval: 50; onTriggered: root.collect() }
 
   // A click anywhere sends "mancato.lake click" (a non-consuming mouse bind in bindings.lua); if the
   // pointer is over a terminal that is showing the lake, that spot ripples and the koi scatter.
@@ -168,7 +203,7 @@ Scope {
       // Koi spines, one row per fish, written on the CPU each tick.
       Canvas {
         id: fishCv
-        width: 40
+        width: 48
         height: 32
         renderTarget: Canvas.Image
         Connections { target: root; function onTickChanged() { fishCv.requestPaint() } }
@@ -187,7 +222,7 @@ Scope {
         hideSource: true
         smooth: false
         live: true
-        textureSize: Qt.size(40, 32)
+        textureSize: Qt.size(48, 32)
       }
       // The GPU rasterises the koi into one pixel per character cell (three bands stacked).
       ShaderEffect {
@@ -241,6 +276,21 @@ Scope {
         textureSize: Qt.size(atlas.width, atlas.height)
         Component.onCompleted: scheduleUpdate()
         Timer { interval: 800; running: true; onTriggered: atlasSrc.scheduleUpdate() }
+      }
+
+      // Keeps the display shader compiled and its pipeline warm, so the first terminal shows koi at once.
+      ShaderEffect {
+        width: 4
+        height: 4
+        opacity: 0.01
+        property variant dataTex: dataSrc
+        property variant atlasTex: atlasSrc
+        property vector2d winSize: Qt.vector2d(4, 4)
+        property vector2d cellPx: Qt.vector2d(win.dim.cw, win.dim.ch)
+        property vector2d grid: Qt.vector2d(win.dim.cols, win.dim.rows)
+        property real alpha: 1
+        property vector4d tint: Qt.vector4d(0.42, 0.68, 0.72, 1)
+        fragmentShader: Qt.resolvedUrl("lake.frag.qsb")
       }
 
       Repeater {

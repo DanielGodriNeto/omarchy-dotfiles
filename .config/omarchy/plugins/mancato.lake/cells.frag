@@ -16,7 +16,7 @@ layout(std140, binding = 0) uniform buf {
 layout(binding = 1) uniform sampler2D fishTex;
 
 const int N = 12;
-const float TW = 40.0;
+const float TW = 48.0;
 const float TH = 32.0;
 
 float sstep(float a, float b, float x) { float k = clamp((x - a) / (b - a), 0.0, 1.0); return k * k * (3.0 - 2.0 * k); }
@@ -190,6 +190,12 @@ void main() {
         float L = arcTotal;
         if (mn > L * 0.3 + diag) continue;
         vec3 kr, kw, kb, kf; scheme(colour, kr, kw, kb, kf);
+        if (rd(2 * N + 9, f) > 0.5) {  // colours taken from the painting
+            kr = vec3(rd(2 * N + 10, f), rd(2 * N + 11, f), rd(2 * N + 12, f)) / 255.0;
+            kw = vec3(rd(2 * N + 13, f), rd(2 * N + 14, f), rd(2 * N + 15, f)) / 255.0;
+            kb = vec3(rd(2 * N + 16, f), rd(2 * N + 17, f), rd(2 * N + 18, f)) / 255.0;
+            kf = mix(kw, vec3(0.78, 0.84, 0.86), 0.45);
+        }
         float alphaBase = 0.9 * (0.55 + 0.45 * depth);
 
         bool got = samplePt(cen, L, flareL, flareR, 0, N - 2);
