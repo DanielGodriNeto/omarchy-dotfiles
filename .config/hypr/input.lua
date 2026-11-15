@@ -51,8 +51,8 @@
 -- Enable touchpad gestures for changing workspaces.
 -- See https://wiki.hypr.land/Configuring/Advanced-and-Cool/Gestures/
 hl.gesture({ fingers = 3, direction = "horizontal", action = "workspace" })
--- 3 dedos para cima abre o overview (mesmo painel do Super+`); fecha com Esc ou Super+`.
-hl.gesture({ fingers = 3, direction = "up", action = function() hl.exec_cmd("omarchy-shell shell toggle mancato.overview") end })
+-- 3 dedos para baixo abre o overview (mesmo painel do Super+`); fecha com Esc ou Super+`.
+hl.gesture({ fingers = 3, direction = "down", action = function() hl.exec_cmd("omarchy-shell shell toggle mancato.overview") end })
 -- 4 dedos: desliza a faixa de colunas do layout em rolagem.
 hl.gesture({ fingers = 4, direction = "horizontal", action = "scroll_move" })
 

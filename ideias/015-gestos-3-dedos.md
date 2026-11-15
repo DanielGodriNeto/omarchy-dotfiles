@@ -6,4 +6,4 @@
 
 ## Notas
 (atualize aqui: decisões, commits, o que falta)
-- Feito: 3 dedos para cima abre o overview (`input.lua`); testar no touchpad. (14/11/2026)
+- Feito: 3 dedos para baixo abre o overview (`input.lua`); testar no touchpad. (14/11/2026)
