@@ -16,8 +16,8 @@ layout(std140, binding = 0) uniform buf {
 layout(binding = 1) uniform sampler2D fishTex;
 
 const int N = 12;
-const float TW = 32.0;
-const float TH = 16.0;
+const float TW = 40.0;
+const float TH = 32.0;
 
 float sstep(float a, float b, float x) { float k = clamp((x - a) / (b - a), 0.0, 1.0); return k * k * (3.0 - 2.0 * k); }
 uint ihash(uint a, uint b) {
@@ -171,8 +171,10 @@ void main() {
     float gi = 0.0, ga = 0.0, ta = 0.0;
     const vec2 SUB[4] = vec2[4](vec2(0.25, 0.25), vec2(0.75, 0.25), vec2(0.25, 0.75), vec2(0.75, 0.75));
 
-    for (int f = 0; f < 16; f++) {
+    for (int f = 0; f < 32; f++) {
         if (float(f) >= nFish) break;
+        // bounding circle first: most koi are nowhere near this cell
+        if (distance(cen, vec2(rd(2 * N + 6, f), rd(2 * N + 7, f))) > rd(2 * N + 8, f) + diag) continue;
         float flareL = rd(2 * N, f) - 0.0, flareR = rd(2 * N + 1, f);
         // scalars are stored as value + 512 scaled by 16, so decode back
         flareL = flareL / 100.0 + 0.0; flareR = flareR / 100.0 + 0.0;
@@ -221,9 +223,9 @@ void main() {
             float gl = sstep(0.62, 0.96, caus(cen)) * nz;
             float lit = clamp(0.76 + 0.26 * nz + 0.2 * (ns.x * -0.6 + ns.y * -0.8) + 0.3 * gl, 0.62, 1.34);
             int sk = kind == 3 ? 0 : skin(seed, variety, s2, v / L, across);
-            vec3 base = kind == 3 ? vec3(16.0, 15.0, 14.0) / 255.0 : (sk == 1 ? kr : (sk == 2 ? kb : kw));
-            tile = base * lit; tA = (cover >= 0.6 ? 1.0 : cover * 1.4) * alphaBase; hasTile = true;
-            if (kind == 3) { gI = 10.0; gC = kw; gA = 0.95 * alphaBase; hasGlyph = true; }
+            vec3 base = kind == 3 ? mix(kb, vec3(0.06), 0.5) : (sk == 1 ? kr : (sk == 2 ? kb : kw));
+            tile = base * lit; tA = (cover >= 0.6 ? 1.0 : cover * 1.4) * alphaBase * (kind == 3 ? 0.72 : 1.0); hasTile = true;
+            if (kind == 3) { gI = 1.0; gC = kw; gA = 0.7 * alphaBase; hasGlyph = true; }
             else {
                 gI = clamp(1.0 + floor((1.08 - lit) / 0.46 * 6.0 + 0.5) + (kind == 4 ? 2.0 : 0.0), 1.0, 9.0);
                 gC = base * (sk == 0 ? 0.55 : 1.35); gA = 0.62 * alphaBase; hasGlyph = true;

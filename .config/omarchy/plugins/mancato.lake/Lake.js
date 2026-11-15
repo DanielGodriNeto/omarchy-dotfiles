@@ -9,9 +9,12 @@
 var CW = 5, CH = 9, W = 1920, H = 1080, cols = 384, rows = 120
 var N = 12
 var fish = [], rips = [], t = 0
+var cfg = { count: 16, speed: 1, palette: "mix" }
+var PALS = { mix: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], warm: [0, 1, 2, 3, 5, 6, 11], cool: [7, 8, 9, 10, 4], paint: [0] }
 var VAR = [0, 1, 0, 1, 2, 1, 0, 3, 1, 0, 2, 1, 3, 0, 1, 0]
 
 function clamp(v, a, b) { return v < a ? a : v > b ? b : v }
+function colourFor(k) { var p = PALS[cfg.palette] || PALS.mix; return p[(k * 5 + 2) % p.length] }
 function rnd(a, b) { return a + Math.random() * (b - a) }
 
 function mk(k) {
@@ -21,13 +24,23 @@ function mk(k) {
   return {
     k: k, seed: k * 7 + 3, L: L, gap: gap, nodes: nodes, vx: Math.cos(a) * 4, vy: Math.sin(a) * 4,
     tg: rnd(3, 5.5), soc: rnd(.3, 1), loner: false, mood: rnd(40, 200), phase: rnd(0, 6), beat: .6, turn: 0, a: a,
-    variety: VAR[k % VAR.length], colour: (k * 5 + 2) % 12, depth: rnd(.62, 1)
+    variety: VAR[k % VAR.length], colour: colourFor(k), depth: rnd(.62, 1)
   }
 }
 
 function init(w, h, count) {
   W = w; H = h; cols = Math.ceil(w / CW); rows = Math.ceil(h / CH); fish = []
-  for (var i = 0; i < count; i++) fish.push(mk(i))
+  cfg.count = count || cfg.count
+  for (var i = 0; i < cfg.count; i++) fish.push(mk(i))
+}
+/* c: { count, speed, palette }. Resizes the shoal and recolours it without restarting the lake. */
+function configure(c) {
+  cfg.speed = c.speed > 0 ? c.speed : 1
+  cfg.palette = PALS[c.palette] ? c.palette : "mix"
+  cfg.count = clamp(Math.round(c.count || 16), 1, 32)
+  while (fish.length < cfg.count) fish.push(mk(fish.length))
+  fish.length = cfg.count
+  for (var i = 0; i < fish.length; i++) fish[i].colour = colourFor(i)
 }
 function size() { return { cols: cols, rows: rows, cw: CW, ch: CH } }
 function time() { return t }
@@ -66,7 +79,7 @@ function step() {
     f.vx += rnd(-.22, .22); f.vy += rnd(-.22, .22)
     if (h[0] < 90) f.vx += .5; if (h[0] > W - 90) f.vx -= .5
     if (h[1] < 80) f.vy += .5; if (h[1] > H - 80) f.vy -= .5
-    var sp = Math.hypot(f.vx, f.vy) || 1, ns = sp + (f.tg - sp) * .05
+    var sp = Math.hypot(f.vx, f.vy) || 1, ns = sp + (f.tg * cfg.speed - sp) * .05
     f.vx *= ns / sp; f.vy *= ns / sp
     var na = Math.atan2(f.vy, f.vx), da = Math.atan2(Math.sin(na - f.a), Math.cos(na - f.a))
     f.turn = f.turn * .8 + da * .2; f.a = na
@@ -87,7 +100,7 @@ function enc(col, row, v) {
   texels.push(col, row, q >> 8, q & 255)
 }
 
-/* The fish as a flat list [col, row, r, g, ...] of texels of a 32 x 8 image, one row per koi: columns 0..N-1
+/* The fish as a flat list [col, row, r, g, ...] of texels of a 40 x 32 image, one row per koi: columns 0..N-1
  * the spine x, N..2N-1 the spine y (with the swimming wave applied), then flare L, flare R, depth (x100),
  * colour, seed, variety. The shader decodes (r * 256 + g) / 16 - 512. */
 function fishTexels() {
@@ -109,6 +122,9 @@ function fishTexels() {
     enc(2 * N + 3, a, f.colour)
     enc(2 * N + 4, a, f.seed)
     enc(2 * N + 5, a, f.variety)
+    enc(2 * N + 6, a, f.nodes[N >> 1][0])
+    enc(2 * N + 7, a, f.nodes[N >> 1][1])
+    enc(2 * N + 8, a, f.L * .8)
   }
   return texels
 }

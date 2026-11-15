@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "mancato.lakepanel",
+  "name": "Koi lake panel",
+  "version": "1.0.0",
+  "author": "mancato",
+  "description": "Settings of the koi lake: on or off, where it shows, shoal size, speed, colours, ripples",
+  "kinds": ["overlay"],
+  "keepLoaded": true,
+  "entryPoints": { "overlay": "LakePanel.qml" }
+}

@@ -10,6 +10,7 @@
 - `.config/hypr/monitors.lua`: See https://wiki.hypr.land/Configuring/Basics/Monitors/
 - `.config/omarchy/bar/modules/Pill.qml`: Shared chip chrome for the custom bar widgets in this directory
 - `.config/omarchy/bar/modules/apps-pill.qml`: Custom bar module (bar.layout entry: { "id": "apps-pill", "type": "qml" }).
+- `.config/omarchy/bar/modules/koi.qml`: Custom bar module (bar.layout entry: { "id": "koi", "type": "qml" }).
 - `.config/omarchy/bar/modules/media-spectrum.qml`: Custom bar module (bar.layout entry: { "id": "media-spectrum", "type": "qml" }).
 - `.config/omarchy/bar/modules/painting.qml`: Custom bar module (bar.layout entry: { "id": "painting", "type": "qml" }).
 - `.config/omarchy/bar/modules/system-pill.qml`: Custom bar module (bar.layout entry: { "id": "system-pill", "type": "qml" }).
@@ -71,6 +72,8 @@
 - `.config/omarchy/plugins/mancato.lake/lake.frag`: version 440
 - `.config/omarchy/plugins/mancato.lake/lake.frag.qsb`: (sem descrição)
 - `.config/omarchy/plugins/mancato.lake/manifest.json`:   "description": "One ASCII koi lake seen through translucent foot terminals",
+- `.config/omarchy/plugins/mancato.lakepanel/LakePanel.qml`: Koi lake panel: opened from the koi button in the bar. Settings live in ~/.config/omarchy/lake.json,
+- `.config/omarchy/plugins/mancato.lakepanel/manifest.json`:   "description": "Settings of the koi lake: on or off, where it shows, shoal size, speed, colours, ripples",
 - `.config/omarchy/plugins/mancato.menu/BarWidget.qml`: import QtQuick
 - `.config/omarchy/plugins/mancato.menu/Menu.qml`: Injected by omarchy-shell when this plugin is summoned.
 - `.config/omarchy/plugins/mancato.menu/MenuExtras.js`: Additions to the cloned Omarchy menu: a one-line explanation under rows that
@@ -113,6 +116,7 @@
 - `.local/bin/fastfetch-art`: """Pinta o logo do fastfetch com uma pintura de natureza no tom do tema Omarchy (sorteada dentro de uma faixa de cores)."""
 - `.local/bin/fastfetch-fit`: """fastfetch adaptativo: ajusta imagem e secoes ao tamanho do terminal."""
 - `.local/bin/focus-mode`: Modo foco: esconde a barra e esmaece as janelas inativas. Rode de novo para sair.
+- `.local/bin/lake-config`: """Configuração do lago de carpas (~/.config/omarchy/lake.json), lida pelo plugin mancato.lake.
 - `.local/bin/lake-term-state`: """Para cada pid de terminal foot recebido, diz se o shell filho está no prompt (true) ou rodando algo
 - `.local/bin/omarchy-ac-idle-watcher`: Keeps Omarchy's idle/lock "stay awake" state in sync with AC power presence.
 - `.local/bin/omarchy-cliamp-toggle-provider`: omarchy:summary=Switch the cliamp desktop widget's music source between Spotify and local radio

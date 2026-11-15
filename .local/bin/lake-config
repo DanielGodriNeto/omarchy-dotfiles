@@ -1,0 +1,73 @@
+#!/usr/bin/env python3
+"""Configuração do lago de carpas (~/.config/omarchy/lake.json), lida pelo plugin mancato.lake.
+
+lake-config                 imprime a configuração (JSON, com padrões)
+lake-config set <chave> <valor>
+  enabled  on|off|toggle      ligado ou desligado
+  mode     auto|idle|always   auto: todos os terminais no modo Performance, senão só os parados
+  count    1..32              quantidade de carpas
+  speed    slow|normal|fast   velocidade
+  palette  mix|warm|cool|paint  cores
+  ripples  on|off|toggle      ondas ao clicar
+"""
+import json, os, sys, tempfile
+
+PATH = os.path.expanduser("~/.config/omarchy/lake.json")
+DEFAULTS = {"enabled": True, "mode": "auto", "count": 16, "speed": 1.0, "palette": "mix", "ripples": True}
+SPEEDS = {"slow": 0.6, "normal": 1.0, "fast": 1.6}
+CHOICES = {"mode": {"auto", "idle", "always"}, "palette": {"mix", "warm", "cool", "paint"}}
+
+
+def load():
+    try:
+        with open(PATH) as f:
+            data = json.load(f)
+    except (OSError, ValueError):
+        data = {}
+    return {**DEFAULTS, **{k: v for k, v in data.items() if k in DEFAULTS}}
+
+
+def save(cfg):
+    os.makedirs(os.path.dirname(PATH), exist_ok=True)
+    fd, tmp = tempfile.mkstemp(dir=os.path.dirname(PATH))
+    with os.fdopen(fd, "w") as f:
+        json.dump(cfg, f, indent=2)
+    os.replace(tmp, PATH)
+
+
+def flag(value, current):
+    if value == "toggle":
+        return not current
+    if value in ("on", "true", "1"):
+        return True
+    if value in ("off", "false", "0"):
+        return False
+    raise SystemExit(f"valor inválido: {value}")
+
+
+def main():
+    cfg = load()
+    if len(sys.argv) == 1:
+        print(json.dumps(cfg))
+        return
+    if len(sys.argv) != 4 or sys.argv[1] != "set":
+        raise SystemExit(__doc__)
+    key, value = sys.argv[2], sys.argv[3]
+    if key in ("enabled", "ripples"):
+        cfg[key] = flag(value, cfg[key])
+    elif key in CHOICES:
+        if value not in CHOICES[key]:
+            raise SystemExit(f"valor inválido: {value}")
+        cfg[key] = value
+    elif key == "count":
+        if not value.isdigit() or not 1 <= int(value) <= 32:
+            raise SystemExit("count vai de 1 a 32")
+        cfg[key] = int(value)
+    elif key == "speed":
+        cfg[key] = SPEEDS.get(value) or float(value)
+    else:
+        raise SystemExit(f"chave desconhecida: {key}")
+    save(cfg)
+
+
+main()

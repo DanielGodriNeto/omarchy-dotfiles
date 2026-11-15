@@ -29,6 +29,38 @@ Scope {
   property vector4d rip3: Qt.vector4d(0, 0, 0, 0)
   property int tick: 0
   property int fishCount: 0
+  // lake-config: switch, mode (auto | idle | always), shoal, ripples
+  property bool enabled: true
+  property string mode: "auto"
+  property bool ripplesOn: true
+  readonly property string configPath: Quickshell.env("HOME") + "/.config/omarchy/lake.json"
+  // Whether the lake shows in the terminal with this pid: always in "always", every terminal in
+  // "auto" while on the Performance profile, otherwise only terminals sitting at the prompt.
+  function wants(pid) {
+    if (!enabled) return false
+    if (mode === "always" || (mode === "auto" && perf)) return true
+    return idle[String(pid)] !== false
+  }
+  readonly property bool needsIdleState: enabled && !(mode === "always" || (mode === "auto" && perf))
+
+  function applyConfig(txt) {
+    var c = {}
+    try { c = JSON.parse(txt) } catch (e) {}
+    enabled = c.enabled !== false
+    mode = c.mode || "auto"
+    ripplesOn = c.ripples !== false
+    Sim.configure({ count: c.count || 16, speed: c.speed || 1, palette: c.palette || "mix" })
+    fishCount = Sim.count()
+  }
+
+  FileView {
+    path: root.configPath
+    watchChanges: true
+    printErrors: false
+    onFileChanged: reload()
+    onLoaded: root.applyConfig(text())
+    onLoadFailed: root.applyConfig("{}")
+  }
 
   function isTerm(cls) { return /(^|[.-])foot($|[.-])|terminal/i.test(cls || "") }
 
@@ -58,11 +90,12 @@ Scope {
   // A click anywhere sends "mancato.lake click" (a non-consuming mouse bind in bindings.lua); if the
   // pointer is over a terminal that is showing the lake, that spot ripples and the koi scatter.
   function clickAt(x, y) {
+    if (!ripplesOn) return
     var mons = Hyprland.monitors.values
     for (var i = 0; i < wins.length; i++) {
       var w = wins[i], active = -1, mx = 0, my = 0
       for (var m = 0; m < mons.length; m++) if (mons[m].id === w.mon) { active = mons[m].activeWorkspace ? mons[m].activeWorkspace.id : -1; mx = mons[m].x; my = mons[m].y }
-      if (w.ws !== active || !(perf || idle[String(w.pid)] !== false)) continue
+      if (w.ws !== active || !wants(w.pid)) continue
       if (x >= w.x && x < w.x + w.w && y >= w.y && y < w.y + w.h) { Sim.addRipple(x - mx, y - my); pushRipples(); return }
     }
   }
@@ -89,7 +122,7 @@ Scope {
 
   Timer {
     interval: 1500
-    running: root.wins.length > 0 && !root.perf
+    running: root.wins.length > 0 && root.needsIdleState
     repeat: true
     onTriggered: {
       if (stateProc.running) return
@@ -106,7 +139,7 @@ Scope {
 
   Timer {
     interval: root.perf ? 70 : 100
-    running: root.wins.length > 0
+    running: root.wins.length > 0 && root.enabled
     repeat: true
     onTriggered: { Sim.step(); root.simT = Sim.time(); root.pushRipples(); root.tick++ }
   }
@@ -135,8 +168,8 @@ Scope {
       // Koi spines, one row per fish, written on the CPU each tick.
       Canvas {
         id: fishCv
-        width: 32
-        height: 16
+        width: 40
+        height: 32
         renderTarget: Canvas.Image
         Connections { target: root; function onTickChanged() { fishCv.requestPaint() } }
         onPaint: {
@@ -154,7 +187,7 @@ Scope {
         hideSource: true
         smooth: false
         live: true
-        textureSize: Qt.size(32, 16)
+        textureSize: Qt.size(40, 32)
       }
       // The GPU rasterises the koi into one pixel per character cell (three bands stacked).
       ShaderEffect {
@@ -216,7 +249,7 @@ Scope {
           id: fx
           required property var modelData
           readonly property bool onThis: modelData.ws === win.wsId && win.monitor && modelData.mon === win.monitor.id
-          readonly property bool show: onThis && (root.perf || root.idle[String(modelData.pid)] !== false)
+          readonly property bool show: onThis && root.wants(modelData.pid)
           x: modelData.x - win.monX
           y: modelData.y - win.monY
           width: modelData.w
