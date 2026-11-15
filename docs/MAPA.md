@@ -133,9 +133,14 @@
 - `docs/HISTORICO.md`: Histórico completo (ex-HANDOFF, preservado na íntegra em 13/11/2026)
 - `docs/PESQUISA-DISTROS.md`: Pesquisa: ideias de distros e rices para o Omarchy/Hyprland
 - `docs/referencias/koi/LICENSE-ascii-animals-extension`: MIT License
+- `docs/referencias/koi/LICENSE-i098-ascii-koi`:                                  Apache License
 - `docs/referencias/koi/LICENSE-pursurer-ascii-koi`: MIT License
 - `docs/referencias/koi/README.md`: Referências visuais do lago de carpas
+- `docs/referencias/koi/ascii-animals-extension-demo.gif`: (sem descrição)
 - `docs/referencias/koi/ascii-animals-extension-koi.png`: (imagem)
+- `docs/referencias/koi/i098-ascii-koi-dark.gif`: (sem descrição)
+- `docs/referencias/koi/i098-ascii-koi-light.gif`: (sem descrição)
+- `docs/referencias/koi/pursurer-ascii-koi-hero.gif`: (sem descrição)
 - `docs/referencias/koi/pursurer-ascii-koi-poster.png`: (imagem)
 - `ideias.md`: Ideias do projeto (log vivo)
 - `scripts/dock-magnify.test.mjs`: no pointer: nothing grows or moves
