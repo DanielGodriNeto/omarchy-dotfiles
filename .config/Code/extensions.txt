@@ -8,6 +8,8 @@ ms-kubernetes-tools.vscode-kubernetes-tools
 ms-python.debugpy
 ms-python.vscode-python-envs
 ms-vscode.cmake-tools
+ms-vscode.cpptools
+ms-vscode.makefile-tools
 ms-vscode-remote.remote-containers
 oldjobobo.lumon-theme
 pkief.material-icon-theme
