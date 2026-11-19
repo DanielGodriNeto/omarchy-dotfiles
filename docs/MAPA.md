@@ -1,5 +1,7 @@
 # Mapa de arquivos (gerado por scripts/map.sh, não edite à mão)
 
+- `.config/Code/User/settings.json`:   "workbench.colorTheme": "One Dark Pro",
+- `.config/Code/extensions.txt`: anthropic.claude-code
 - `.config/brave-newtab/index.html`: New tab page: the current desktop wallpaper (bg.jpg, refreshed on every Omarchy
 - `.config/foot/foot.ini`: Terminal translúcido: o lago de carpas (mancato.lake) aparece por trás.
 - `.config/hypr/autostart.lua`: Extra autostart processes.

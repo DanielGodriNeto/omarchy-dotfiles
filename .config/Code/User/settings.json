@@ -1,0 +1,18 @@
+{
+  "workbench.colorTheme": "One Dark Pro",
+  "workbench.iconTheme": "material-icon-theme",
+  "update.mode": "none",
+  "github.copilot.nextEditSuggestions.eagerness": "high",
+  "explorer.confirmDragAndDrop": false,
+  "terminal.integrated.initialHint": false,
+  "claudeCode.preferredLocation": "panel",
+  "claudeCode.hideOnboarding": true,
+  "editor.fontFamily": "'JetBrains Mono', monospace",
+  "editor.fontLigatures": true,
+  "editor.fontSize": 14,
+  "editor.cursorBlinking": "smooth",
+  "editor.cursorSmoothCaretAnimation": "on",
+  "editor.smoothScrolling": true,
+  "editor.bracketPairColorization.enabled": true,
+  "terminal.integrated.fontFamily": "'JetBrains Mono'"
+}
