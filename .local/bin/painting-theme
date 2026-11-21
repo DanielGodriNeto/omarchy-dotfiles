@@ -224,7 +224,7 @@ def items():
     return out
 
 
-def prepare(item, meta, dest):
+def prepare(item, meta, dest, strict=False):
     """Baixa a versao grande e monta o wallpaper em dest. Sem rede, usa a miniatura."""
     url = (meta.get(item["f"]) or {}).get("u")
     src = f"{ART}/{item['f']}"
@@ -236,6 +236,8 @@ def prepare(item, meta, dest):
         download(url, tmp)
         src = tmp
     except Exception as e:
+        if strict:  # fila de cache: nao guarda miniatura borrada, tenta de novo depois
+            raise
         print(f"aviso: sem versao grande ({e})", file=sys.stderr)
     make_wallpaper(src, dest)
     if os.path.exists(tmp):
@@ -790,14 +792,10 @@ def cmd_rate(value, reasons):
     else:
         data["ratings"][cur] = {"v": value, "dims": dims, "ts": int(time.time())}
     save_json(TASTE, data)
-    # A proxima pintura ja baixada e cortada continua valendo (e o que faz a troca ser instantanea); so
-    # descarta se for da mesma categoria da que acabou de ser rejeitada, e ja prepara outra em segundo plano.
-    ready = load_json(NEXT_JSON, {}) if os.path.exists(NEXT_JSON) else {}
-    cur_cat = next((i.get("c") for i in items() if i["f"] == cur), None)
-    if value == -1 and ready.get("c") and ready.get("c") == cur_cat:
-        for stale in (NEXT_JSON, NEXT_JPG):
-            if os.path.exists(stale):
-                os.remove(stale)
+    # A fila de pinturas prontas continua valendo (e o que faz a troca ser instantanea); queue_entries()
+    # descarta as rejeitadas, e a fila e reabastecida em segundo plano.
+    if value == -1:
+        queue_entries()
         start_prefetch()
     print(json.dumps({"current": cur, "v": value, "dims": dims, "excluded": only_image and value == -1}))
 
@@ -809,8 +807,15 @@ def cmd_taste():
                       "ratings": len(load_json(TASTE, {"ratings": {}})["ratings"])}, ensure_ascii=False))
 
 
-def pick_pool():
+def disliked():
+    ratings = load_json(TASTE, {"ratings": {}}).get("ratings", {})
+    return {f for f, r in ratings.items() if r.get("v") == -1}
+
+
+def pick_pool(skip=()):
     good, _ = eligible()
+    bad = disliked() | set(skip)
+    good = [it for it in good if it["f"] not in bad] or good
     state = load_json(STATE, {"recent": []})
     recent = set(state.get("recent", []))
     base = good
@@ -830,21 +835,51 @@ def new_only(pool):
     return fresh or [it for it in pool if it["f"] not in rated]
 
 
-NEXT_JSON = f"{CACHE_DIR}/next.json"
-NEXT_JPG = f"{CACHE_DIR}/next.jpg"
+QUEUE_DIR = f"{CACHE_DIR}/queue"   # pinturas ja baixadas e cortadas, prontas para troca instantanea
+QUEUE_SIZE = 4
+
+
+def queue_entries():
+    """Itens prontos na fila, do mais antigo ao mais novo; descarta os que nao valem mais."""
+    out = []
+    if not os.path.isdir(QUEUE_DIR):
+        return out
+    bad = disliked()
+    for name in sorted(os.listdir(QUEUE_DIR), key=lambda n: os.path.getmtime(f"{QUEUE_DIR}/{n}")):
+        if not name.endswith(".json"):
+            continue
+        meta_path, jpg = f"{QUEUE_DIR}/{name}", f"{QUEUE_DIR}/{name[:-5]}.jpg"
+        entry = load_json(meta_path, {})
+        if not entry.get("f") or not os.path.exists(jpg) or entry["f"] in bad:
+            for p in (meta_path, jpg):
+                if os.path.exists(p):
+                    os.remove(p)
+            continue
+        out.append((entry, jpg, meta_path))
+    return out
 
 
 def cmd_prefetch():
-    """Deixa a proxima pintura baixada e cortada, para a troca ser instantanea."""
+    """Mantem uma fila de pinturas baixadas e cortadas, para a troca ser instantanea."""
+    os.makedirs(QUEUE_DIR, exist_ok=True)
     lock = open(f"{CACHE_DIR}/prefetch.lock", "w")
     try:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
     except OSError:
         return
-    item = pick_pool()[0]
-    _, meta = eligible()
-    prepare(item, meta, NEXT_JPG)
-    save_json(NEXT_JSON, {**item, "band": current_band()[1]})
+    while True:
+        queued = queue_entries()
+        if len(queued) >= QUEUE_SIZE:
+            return
+        item = pick_pool(skip={e["f"] for e, _, _ in queued})[0]
+        _, meta = eligible()
+        jpg = f"{QUEUE_DIR}/{item['f'][:-4]}.jpg"
+        try:
+            prepare(item, meta, jpg, strict=True)
+        except Exception as e:
+            print(f"fila: {item['f']} adiada ({e})", file=sys.stderr)
+            return
+        save_json(f"{QUEUE_DIR}/{item['f'][:-4]}.json", {**item, "band": current_band()[1]})
 
 
 def start_prefetch():
@@ -852,14 +887,20 @@ def start_prefetch():
                      start_new_session=True)
 
 
+def usable(entry):
+    if load_json(CFG, DEFAULTS).get("by_time") and entry.get("band") != current_band()[1]:
+        return False
+    if load_json(CFG, DEFAULTS).get("rate_mode") and not new_only([{"f": entry["f"]}]):
+        return False  # modo avaliacao rapida: a pre-carregada ja foi avaliada ou vista
+    return entry["f"] not in disliked()
+
+
 def cmd_next():
-    ready = load_json(NEXT_JSON, {}) if os.path.exists(NEXT_JSON) else {}
-    stale = load_json(CFG, DEFAULTS).get("by_time") and ready.get("band") != current_band()[1]
-    if load_json(CFG, DEFAULTS).get("rate_mode") and ready.get("f") and not new_only([{"f": ready["f"]}]):
-        stale = True  # modo avaliacao rapida: a pre-carregada ja foi avaliada ou vista
-    if ready.get("f") and os.path.exists(NEXT_JPG) and not stale:
-        os.remove(NEXT_JSON)
-        apply(ready, ready=NEXT_JPG)
+    ready = next(((e, jpg, mp) for e, jpg, mp in queue_entries() if usable(e)), None)
+    if ready:
+        entry, jpg, meta_path = ready
+        os.remove(meta_path)
+        apply(entry, ready=jpg)
     else:
         apply(pick_pool()[0])
     start_prefetch()
@@ -929,7 +970,8 @@ def cmd_choose():
     gal = f"{STATE_DIR}/gallery"
     shutil.rmtree(gal, ignore_errors=True)
     os.makedirs(gal)
-    for it in eligible()[0]:
+    bad = disliked()
+    for it in (i for i in eligible()[0] if i["f"] not in bad):
         name = re.sub(r"[^\w .,'()-]", "", it["t"].removeprefix("File:").rsplit(".", 1)[0])[:60].strip()
         os.symlink(f"{ART}/{it['f']}", f"{gal}/{name} [{it['f'][:-4]}].jpg")
     out = subprocess.run(["omarchy", "menu", "images", "--print-name", "--filterable", "--show-labels",
