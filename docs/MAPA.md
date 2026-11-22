@@ -118,6 +118,7 @@
 - `.local/bin/fastfetch-art`: """Pinta o logo do fastfetch com uma pintura de natureza no tom do tema Omarchy (sorteada dentro de uma faixa de cores)."""
 - `.local/bin/fastfetch-fit`: """fastfetch adaptativo: ajusta imagem e secoes ao tamanho do terminal."""
 - `.local/bin/focus-mode`: Modo foco: esconde a barra e esmaece as janelas inativas. Rode de novo para sair.
+- `.local/bin/game-mode`: game-mode on [power-saver|balanced] | off | status
 - `.local/bin/lake-config`: """Configuração do lago de carpas (~/.config/omarchy/lake.json), lida pelo plugin mancato.lake.
 - `.local/bin/lake-palette`: """Cores do papel de parede atual para as carpas do lago (mancato.lake), tiradas de pontos diferentes
 - `.local/bin/lake-term-state`: """Para cada pid de terminal foot recebido, diz se o shell filho está no prompt (true) ou rodando algo
@@ -161,3 +162,7 @@
 - `scripts/pre-commit.hook`: Pré-commit rápido e sem LLM: regenera docs/MAPA.md e o inclui no mesmo commit.
 - `system/plymouth-pintura/build.sh`: Gera (como usuário, sem root) o tema Plymouth "pintura" em ~/.cache/plymouth-pintura:
 - `system/plymouth-pintura/install.sh`: Instala o tema gerado por build.sh. Rode num terminal SEU (pede sudo):  bash install.sh
+- `system/power-tuning/README.md`: Power tuning (ASUS laptop, i3-1315U)
+- `system/power-tuning/battery-charge-limit.conf`: Battery charge limit 80% (applied at every boot). The "Full charge" button raises it temporarily.
+- `system/power-tuning/cpu-power-cap.conf`: CPU power cap (PL1 25 W / PL2 28 W). Firmware default was 50/55 W on a 15 W i3-1315U: 90 C and random power-offs while gaming.
+- `system/power-tuning/install.sh`: Installs the CPU power cap and battery charge limit (persist across boots). Own terminal, asks sudo:  bash install.sh

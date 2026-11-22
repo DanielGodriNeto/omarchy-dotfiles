@@ -1,0 +1,18 @@
+#!/bin/bash
+# game-mode on [power-saver|balanced] | off | status
+# Stops voxtype+cava and sets a cooler power profile; off restores them.
+state=~/.cache/game-mode.prev
+case "$1" in
+  on)
+    powerprofilesctl get > "$state"
+    powerprofilesctl set "${2:-balanced}"
+    systemctl --user stop voxtype.service
+    pkill -x cava
+    echo "game mode ON ($(powerprofilesctl get)); voxtype and cava stopped. Close Brave and Claude Desktop yourself." ;;
+  off)
+    powerprofilesctl set "$(cat "$state" 2>/dev/null || echo balanced)"
+    systemctl --user start voxtype.service
+    echo "game mode OFF ($(powerprofilesctl get)); voxtype restarted." ;;
+  *) echo "profile: $(powerprofilesctl get)  voxtype: $(systemctl --user is-active voxtype.service)"
+     sensors | grep -E "Package|cpu_fan" ;;
+esac
