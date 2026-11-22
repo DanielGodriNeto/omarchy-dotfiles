@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "mancato.power",
+  "name": "My Power",
+  "version": "1.0.0",
+  "author": "mancato",
+  "description": "Battery, power profile, system stats and a one-shot full-charge button",
+  "kinds": ["bar-widget"],
+  "entryPoints": { "barWidget": "Panel.qml" },
+  "barWidget": {
+    "displayName": "My Power",
+    "description": "Battery, power profile, system stats and a one-shot full-charge button",
+    "category": "System",
+    "allowMultiple": false
+  },
+  "omarchy": {
+    "clonedFrom": "omarchy.power"
+  }
+}

@@ -1,0 +1,8 @@
+[Unit]
+Description=Charge the battery to 100% once, then restore the normal charge limit
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/battery-full-charge
+ExecStopPost=/bin/sh -c 'echo "${NORMAL_LIMIT:-80}" > /sys/class/power_supply/BAT0/charge_control_end_threshold'
+Environment=NORMAL_LIMIT=80

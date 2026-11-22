@@ -30,3 +30,5 @@ Vivem em [CLAUDE.md](CLAUDE.md), seção "Regras invioláveis" (fonte única; le
 1. Buscar: `docs/MAPA.md`, depois `rg`; `graphify query` só para relações (veja CLAUDE.md).
 2. `systemctl --user is-active painting-theme.service`, `painting-theme status`, `hyprctl configerrors`.
 3. Mudança visual: mockup, backup, validar, commit pequeno.
+
+- **Energia (22/11/2026):** notebook desligava jogando Roblox. Corrigido com limite de CPU 25/28 W, perfil AC `balanced` e gamemode do Sober desligado (`system/power-tuning/`, `.local/bin/game-mode`), limite de carga de 80% e botão "Carga completa" no popup da bateria (`mancato.power` + `system/battery-full-charge/`; ver o README dali para portar). `install.sh` de cada pasta precisa de `sudo` num terminal próprio.

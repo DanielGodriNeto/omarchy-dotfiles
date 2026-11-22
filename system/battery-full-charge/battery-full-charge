@@ -1,0 +1,14 @@
+#!/bin/bash
+# Raises the battery charge limit to 100% until the battery is full, the charger
+# is unplugged or the service is stopped. The unit's ExecStopPost restores the
+# normal limit in every case, so a crash cannot leave the limit at 100%.
+BAT=/sys/class/power_supply/BAT0
+AC=/sys/class/power_supply/AC0
+echo 100 > "$BAT/charge_control_end_threshold" || exit 1
+deadline=$((SECONDS + 28800))   # safety stop after 8 h
+while (( SECONDS < deadline )); do
+  [[ $(<"$AC/online") == 1 ]] || break                    # unplugged
+  [[ $(<"$BAT/status") == Full ]] && break                # reported full
+  (( $(<"$BAT/capacity") >= 100 )) && break
+  sleep 20
+done

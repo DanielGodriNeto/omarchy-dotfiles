@@ -22,7 +22,8 @@ var TEXTS = {
   "omarchy.network": "Rede\nLista de Wi-Fi e estado da conexão",
   "omarchy.audio": "Som\nVolume, saída de áudio e volume por app",
   "omarchy.monitor": "Tela\nBrilho e opções do monitor",
-  "omarchy.power": "Bateria e energia\nNível, modo de energia e estatísticas"
+  "omarchy.power": "Bateria e energia\nNível, modo de energia e estatísticas",
+  "mancato.power": "Bateria e energia\nNível, modo de energia, estatísticas e carga completa"
 }
 
 function text(id) {

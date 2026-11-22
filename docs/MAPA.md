@@ -102,6 +102,9 @@
 - `.config/omarchy/plugins/mancato.overview/manifest.json`:   "description": "Full-screen grid of workspaces with their windows",
 - `.config/omarchy/plugins/mancato.painting/Painting.qml`: Painting panel: the current painting, one-click like (teaches everything) and
 - `.config/omarchy/plugins/mancato.painting/manifest.json`:   "description": "Current painting with like/dislike feedback, change now and time-of-day switch",
+- `.config/omarchy/plugins/mancato.power/Model.js`: omarchy-battery-status --shell answers in plain digits with the unit
+- `.config/omarchy/plugins/mancato.power/Panel.qml`: manageIpc: false so this panel can own the single IpcHandler the target
+- `.config/omarchy/plugins/mancato.power/manifest.json`:   "description": "Battery, power profile, system stats and a one-shot full-charge button",
 - `.config/omarchy/shell.json`:   "bar": {
 - `.config/omarchy/themed/dorion.theme.css.tpl`: (sem descrição)
 - `.config/omarchy/themed/shell.toml.tpl`: OVERRIDE of default/themed/shell.toml.tpl (calm, macOS/Spotlight-like).
@@ -160,6 +163,11 @@
 - `scripts/menu-shortcuts.py`: """Matches Omarchy menu items to the Hyprland keybinding that does the same thing.
 - `scripts/post-commit.hook`: Pós-commit: nunca bloqueia. Refresh do grafo em segundo plano, só AST, com lock (a camada semântica é sob demanda: STALE-SEMANTIC).
 - `scripts/pre-commit.hook`: Pré-commit rápido e sem LLM: regenera docs/MAPA.md e o inclui no mesmo commit.
+- `system/battery-full-charge/50-battery-full-charge.rules.tpl`: Lets @USER@ start/stop ONLY battery-full-charge.service without a password.
+- `system/battery-full-charge/README.md`: Full charge button (battery popup)
+- `system/battery-full-charge/battery-full-charge`: Raises the battery charge limit to 100% until the battery is full, the charger
+- `system/battery-full-charge/battery-full-charge.service`: Description=Charge the battery to 100% once, then restore the normal charge limit
+- `system/battery-full-charge/install.sh`: Installs the full-charge service + polkit rule. Run in your own terminal (asks sudo):  bash install.sh
 - `system/plymouth-pintura/build.sh`: Gera (como usuário, sem root) o tema Plymouth "pintura" em ~/.cache/plymouth-pintura:
 - `system/plymouth-pintura/install.sh`: Instala o tema gerado por build.sh. Rode num terminal SEU (pede sudo):  bash install.sh
 - `system/power-tuning/README.md`: Power tuning (ASUS laptop, i3-1315U)
